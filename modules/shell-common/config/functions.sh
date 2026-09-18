@@ -1,3 +1,28 @@
+proxy_on() {
+    local proxy_url="${1:-${DOTFILES_PROXY_URL:-http://127.0.0.1:7897}}"
+    local bypass_list="${DOTFILES_NO_PROXY:-localhost,127.0.0.1,::1}"
+
+    case "$proxy_url" in
+        http://*|https://*|socks4://*|socks5://*|socks5h://*) ;;
+        *)
+            printf 'dotfiles: unsupported proxy URL scheme\n' >&2
+            return 2
+            ;;
+    esac
+
+    export HTTP_PROXY="$proxy_url" HTTPS_PROXY="$proxy_url" ALL_PROXY="$proxy_url"
+    export http_proxy="$proxy_url" https_proxy="$proxy_url" all_proxy="$proxy_url"
+    export NO_PROXY="$bypass_list" no_proxy="$bypass_list"
+    printf 'proxy on\n'
+}
+
+proxy_off() {
+    unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
+    unset http_proxy https_proxy all_proxy
+    unset NO_PROXY no_proxy
+    printf 'proxy off\n'
+}
+
 dotfiles_source_local() {
     local file="${XDG_CONFIG_HOME:-$HOME/.config}/shell/local.sh"
     [[ -f $file ]] || return 0

@@ -128,6 +128,18 @@ The default mode is `china`, selected in this order:
 
 The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, but never persist proxy addresses or rewrite system apt sources automatically. GitHub Releases keep their official HTTPS URLs and use the system proxy when available. Read [network and mirrors](docs/network-and-mirrors.md) for details.
 
+Bash and Zsh share `proxy_on` / `proxy_off` helpers. The default proxy is `http://127.0.0.1:7897`:
+
+```bash
+proxy_on
+proxy_off
+
+# Use another address temporarily without storing it in the repository.
+DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
+```
+
+Override the defaults with `DOTFILES_PROXY_URL` and `DOTFILES_NO_PROXY`. The tracked `NO_PROXY` default contains only standard loopback addresses; it contains no company domains or private network settings.
+
 ## Local configuration
 
 Create these files yourself when needed. The project reads them but never deploys or commits them:

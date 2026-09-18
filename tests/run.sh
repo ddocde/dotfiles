@@ -8,6 +8,33 @@ ok() { printf 'ok - %s\n' "$1"; pass=$((pass + 1)); }
 not_ok() { printf 'not ok - %s\n' "$1"; fail=$((fail + 1)); }
 assert_contains() { if [[ $1 == *"$2"* ]]; then ok "$3"; else not_ok "$3"; fi; }
 
+proxy_state=$(
+    unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy NO_PROXY no_proxy
+    # shellcheck source=/dev/null
+    source "$ROOT/modules/shell-common/config/functions.sh"
+    proxy_on >/dev/null
+    printf '%s|%s|%s|' "$HTTP_PROXY" "$http_proxy" "$NO_PROXY"
+    proxy_off >/dev/null
+    if [[ -z ${HTTP_PROXY+x} && -z ${http_proxy+x} && -z ${NO_PROXY+x} ]]; then
+        printf 'off'
+    fi
+)
+if [[ $proxy_state == 'http://127.0.0.1:7897|http://127.0.0.1:7897|localhost,127.0.0.1,::1|off' ]]; then
+    ok 'shared proxy helpers enable and disable cleanly'
+else
+    not_ok 'shared proxy helpers enable and disable cleanly'
+fi
+
+if (
+    source "$ROOT/modules/shell-common/config/functions.sh"
+    DOTFILES_PROXY_URL='invalid://127.0.0.1:7897'
+    proxy_on
+) >/dev/null 2>&1; then
+    not_ok 'proxy helper rejects unsupported URL schemes'
+else
+    ok 'proxy helper rejects unsupported URL schemes'
+fi
+
 output=$("$ROOT/setup.sh" plan minimal --network official)
 assert_contains "$output" 'core             required' 'minimal profile expands'
 assert_contains "$output" 'Network: official' 'CLI network mode wins'

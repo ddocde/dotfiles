@@ -128,6 +128,18 @@ cd dotfiles
 
 脚本会继承 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 及其小写形式，但不会保存代理地址，也不会自动改写系统 apt 源。GitHub Release 默认仍走官方 HTTPS 地址及系统代理。完整细节见[网络与镜像](docs/network-and-mirrors.md)。
 
+Bash 和 Zsh 共享 `proxy_on` / `proxy_off` 代理开关，默认连接 `http://127.0.0.1:7897`：
+
+```bash
+proxy_on
+proxy_off
+
+# 临时使用其他地址，不写入仓库
+DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
+```
+
+可通过 `DOTFILES_PROXY_URL` 和 `DOTFILES_NO_PROXY` 自定义。仓库默认的 `NO_PROXY` 仅包含标准本机地址，不包含公司域名或私有网络配置。
+
 ## 本地化与自定义
 
 以下文件由你自行创建，项目会读取但绝不会部署或提交它们：
