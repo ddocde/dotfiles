@@ -1,0 +1,17 @@
+# dotfiles managed entry point
+[[ -o interactive ]] || return
+for file in env.sh functions.sh aliases.sh; do
+    [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file"
+done
+local plugin_root="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles/zsh-plugins"
+[[ -d "$plugin_root/zsh-completions/src" ]] && fpath=("$plugin_root/zsh-completions/src" $fpath)
+autoload -Uz compinit
+if [[ -z $(compaudit 2>/dev/null) ]]; then compinit -d "${ZDOTDIR:-$HOME}/.zcompdump"; else print -u2 'dotfiles: insecure completion paths; run compaudit'; fi
+dotfiles_source_cache mise zsh
+dotfiles_source_cache starship zsh
+dotfiles_source_cache zoxide zsh
+dotfiles_source_cache fzf zsh
+[[ -r "$plugin_root/zsh-autosuggestions/zsh-autosuggestions.zsh" ]] && source "$plugin_root/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[[ -r "$plugin_root/fzf-tab/fzf-tab.plugin.zsh" ]] && source "$plugin_root/fzf-tab/fzf-tab.plugin.zsh"
+[[ -r "$plugin_root/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" ]] && source "$plugin_root/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh"
+dotfiles_source_local

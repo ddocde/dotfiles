@@ -1,0 +1,3 @@
+[links]
+"config/config" = "~/.config/git/config"
+"config/ignore" = "~/.config/git/ignore"

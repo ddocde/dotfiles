@@ -1,0 +1,6 @@
+build-essential
+clang
+clangd
+cmake
+ninja-build
+pkg-config

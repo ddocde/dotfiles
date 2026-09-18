@@ -1,0 +1,4 @@
+# Orchestrator state is intentionally declared in one sourced library and used
+# in another; shellcheck analyzes those files independently.
+disable=SC2034
+external-sources=true

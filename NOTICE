@@ -1,0 +1,9 @@
+dotfiles
+Copyright (c) 2026 dotfiles contributors
+
+The architecture was informed by CNCSMonster/dotfiles. No configuration
+payload or Git history is copied from that repository. Phase-1 audit documents
+are retained in docs/upstream-analysis/ as project research.
+
+The vendored xdotter executable is distributed under its upstream license.
+See vendor/xdotter/LICENSE and vendor/xdotter/SOURCE.

@@ -1,0 +1,7 @@
+% dotfiles
+
+# Preview a profile without changes
+./setup.sh plan <profile> --network <mode>
+
+$ profile: echo minimal developer workstation server termux
+$ mode: echo china official auto

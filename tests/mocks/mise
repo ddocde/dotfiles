@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+case ${1:-} in
+    --version) printf 'mise mock 1.0\n';;
+    activate) printf '# activated %s\n' "${2:?shell required}";;
+    *) exit 64;;
+esac

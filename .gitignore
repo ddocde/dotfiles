@@ -1,0 +1,7 @@
+.DS_Store
+*.swp
+*.tmp
+.cache/
+config/local.env
+config/network.env
+tests/tmp/

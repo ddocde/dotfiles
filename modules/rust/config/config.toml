@@ -1,0 +1,5 @@
+[net]
+git-fetch-with-cli = true
+
+# China-mode installs set the sparse RsProxy index for that process. Put a
+# persistent machine-specific override in ~/.cargo/config.local.toml if needed.

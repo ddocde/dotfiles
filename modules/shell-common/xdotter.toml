@@ -1,0 +1,4 @@
+[links]
+"config/env.sh" = "~/.config/shell/env.sh"
+"config/functions.sh" = "~/.config/shell/functions.sh"
+"config/aliases.sh" = "~/.config/shell/aliases.sh"

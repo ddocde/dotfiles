@@ -1,0 +1,10 @@
+# dotfiles managed entry point
+[[ $- == *i* ]] || return
+for file in env.sh functions.sh aliases.sh; do
+    [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file" ]] && . "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file"
+done
+dotfiles_source_cache mise bash
+dotfiles_source_cache starship bash
+dotfiles_source_cache zoxide bash
+dotfiles_source_cache fzf bash
+dotfiles_source_local

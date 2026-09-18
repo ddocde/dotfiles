@@ -1,0 +1,14 @@
+[init]
+    defaultBranch = main
+[fetch]
+    prune = true
+[push]
+    autoSetupRemote = true
+[merge]
+    conflictStyle = zdiff3
+[core]
+    excludesFile = ~/.config/git/ignore
+[include]
+    path = ~/.config/git/config.local
+[include]
+    path = ~/.config/git/delta

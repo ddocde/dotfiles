@@ -1,0 +1,25 @@
+@include minimal
+zsh
+zsh-plugins
+starship
+fzf
+ripgrep
+fd
+bat
+eza
+jq
+zoxide
+delta
+gh
+shellcheck
+mise
+rust
+go
+python
+node
+cpp
+lsp
+tmux
+yazi
+gitui
+?helix
