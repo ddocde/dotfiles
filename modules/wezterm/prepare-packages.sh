@@ -8,6 +8,6 @@ if (( DRY_RUN )); then
     printf '%s\n' '[dry-run] install WezTerm apt source'
 else
     tmp=$(mktemp "$DOTFILES_CACHE_DIR/wezterm.list.XXXXXX")
-    printf '%s\n' 'deb [signed-by=/usr/share/keyrings/wezterm-fury.asc] https://apt.fury.io/wez/ * *' > "$tmp"
+    printf '%s\n' "deb [signed-by=/usr/share/keyrings/wezterm-fury.asc] ${DOTFILES_WEZTERM_APT_REPO:-https://apt.fury.io/wez/} * *" > "$tmp"
     run "${elevate[@]}" install -m 0644 "$tmp" /etc/apt/sources.list.d/wezterm.list
 fi

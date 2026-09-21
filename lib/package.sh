@@ -28,13 +28,18 @@ install_collected_packages() {
     mapfile -t packages < <(printf '%s\n' "${packages[@]}" | LC_ALL=C sort)
     command_exists apt-get || die 'apt-get is required by selected modules'
     local -a elevate=(); (( EUID == 0 )) || elevate=(sudo)
-    run "${elevate[@]}" apt-get update
-    run "${elevate[@]}" apt-get install -y --no-install-recommends "${packages[@]}"
+    local -a apt_options=(
+        -o Acquire::Retries=8
+        -o Acquire::http::Timeout=30
+        -o Acquire::https::Timeout=30
+    )
+    run "${elevate[@]}" apt-get "${apt_options[@]}" update
+    run "${elevate[@]}" apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
 }
 
 purge_collected_packages() {
     (( PURGE_PACKAGES )) || return 0
     collect_packages; ((${#COLLECTED_PACKAGES[@]})) || return 0
     local -a elevate=(); (( EUID == 0 )) || elevate=(sudo)
-    run "${elevate[@]}" apt-get remove -y "${!COLLECTED_PACKAGES[@]}"
+    run "${elevate[@]}" apt-get -o Acquire::Retries=8 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 remove -y "${!COLLECTED_PACKAGES[@]}"
 }

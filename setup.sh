@@ -7,7 +7,7 @@ for library in logging common platform network profile dependency state artifact
     source "$ROOT/lib/$library.sh"
 done
 export -f log_info log_warn log_error log_debug run die command_exists
-export -f download_verified cargo_run git_checkout_verified record_version atomic_append_unique
+export -f _github_candidates download_verified cargo_run git_checkout_verified record_version atomic_append_unique
 
 usage() {
     cat <<'EOF'

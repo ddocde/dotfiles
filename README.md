@@ -122,11 +122,11 @@ cd dotfiles
 --network > DOTFILES_NETWORK_MODE > ~/.config/dotfiles/network.env > china
 ```
 
-- `china`：npm 使用 npmmirror；Rust 使用 RsProxy；Node 使用 npmmirror 镜像。
+- `china`：npm 使用 npmmirror；Rust 使用 RsProxy；Node 使用 npmmirror；Go 使用 goproxy.cn；Python 使用清华 PyPI；GitHub 下载使用已验证的镜像 fallback。
 - `official`：仅使用官方 npm、Rust 和 Node 源。
 - `auto`：用短超时探测 GitHub，稳定时使用官方源，否则使用国内镜像。
 
-脚本会继承 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 及其小写形式，但不会保存代理地址，也不会自动改写系统 apt 源。GitHub Release 默认仍走官方 HTTPS 地址及系统代理。完整细节见[网络与镜像](docs/network-and-mirrors.md)。
+脚本会继承 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 及其小写形式，并为 apt 增加重试和超时。GitHub Release 和固定 Git 仓库在中国模式下会先尝试已验证的镜像，校验通过后才会写入。完整细节见[网络与镜像](docs/network-and-mirrors.md)。
 
 Bash 和 Zsh 共享 `proxy_on` / `proxy_off` 代理开关，默认连接 `http://127.0.0.1:7897`：
 
@@ -147,7 +147,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 ```text
 ~/.config/shell/local.sh           # 私有 Shell 配置
 ~/.config/git/config.local         # user.name、user.email、公司 Git 设置等
-~/.config/dotfiles/network.env     # 本机默认网络模式
+~/.config/dotfiles/network.env     # 本机网络、代理与镜像覆盖
 ```
 
 `local.sh` 仅在所有者与权限安全时才会被加载。不要把 SSH/GPG 密钥、API Token、npm Token 或 GitHub Token 放入仓库。参见[本地配置](docs/local-config.md)、[自定义](docs/customization.md)和[安全说明](docs/security.md)。

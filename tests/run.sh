@@ -42,6 +42,20 @@ assert_contains "$output" 'Network: official' 'CLI network mode wins'
 mirror=$(source "$ROOT/lib/logging.sh"; source "$ROOT/lib/network.sh"; DOTFILES_CONFIG_DIR=/nonexistent; NETWORK_MODE=china; load_network_mode; printf '%s' "$MISE_NODE_MIRROR_URL")
 if [[ $mirror == */ ]]; then ok 'mise node mirror keeps required trailing slash'; else not_ok 'mise node mirror keeps required trailing slash'; fi
 
+github_candidates=$(source "$ROOT/lib/logging.sh"; source "$ROOT/lib/network.sh"; DOTFILES_CONFIG_DIR=/nonexistent; NETWORK_MODE=china; load_network_mode; _github_candidates 'https://github.com/example/project/releases/download/v1/tool.tar.xz')
+if grep -qx 'https://ghfast.top/https://github.com/example/project/releases/download/v1/tool.tar.xz' <<< "$github_candidates" &&
+    grep -qx 'https://mirror.ghproxy.com/https://github.com/example/project/releases/download/v1/tool.tar.xz' <<< "$github_candidates" &&
+    tail -n 1 <<< "$github_candidates" | grep -qx 'https://github.com/example/project/releases/download/v1/tool.tar.xz'; then
+    ok 'china mode uses verified GitHub mirror fallbacks'
+else
+    not_ok 'china mode uses verified GitHub mirror fallbacks'
+fi
+
+network_fixture=$(mktemp -d)
+printf '%s\n' 'DOTFILES_NETWORK_MODE=china' > "$network_fixture/network.env"
+network_mode=$(DOTFILES_CONFIG_DIR="$network_fixture" DOTFILES_NETWORK_MODE=official NETWORK_MODE= bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$NETWORK_MODE"' _ "$ROOT")
+if [[ $network_mode == official ]]; then ok 'environment network mode overrides local config'; else not_ok 'environment network mode overrides local config'; fi
+
 output=$("$ROOT/setup.sh" plan workstation --network china)
 assert_contains "$output" 'helix            optional' 'optional module preserved'
 rust_line=$(grep -n '^  rust ' <<< "$output" | cut -d: -f1)
@@ -79,7 +93,7 @@ export XDG_STATE_HOME=$tmp_home/.local/state XDG_CACHE_HOME=$tmp_home/.cache
 if [[ -z $(find "$tmp_home" -mindepth 1 -print -quit) ]]; then ok 'dry-run has no filesystem side effects'; else not_ok 'dry-run has no filesystem side effects'; fi
 
 output=$("$ROOT/setup.sh" install workstation --yes --dry-run --network china)
-if [[ $(grep -c '\[dry-run\].*apt-get update$' <<< "$output") == 1 ]]; then ok 'apt update is batched once'; else not_ok 'apt update is batched once'; fi
+if [[ $(grep -c '\[dry-run\].*apt-get.* update$' <<< "$output") == 1 ]]; then ok 'apt update is batched once'; else not_ok 'apt update is batched once'; fi
 if grep -q '@openai/codex@latest' "$ROOT/modules/codex/install.sh" &&
     grep -q '@anthropic-ai/claude-code@latest' "$ROOT/modules/claude/install.sh"; then
     ok 'AI CLI latest exceptions are explicit'

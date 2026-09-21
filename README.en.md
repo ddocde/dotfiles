@@ -122,11 +122,11 @@ The default mode is `china`, selected in this order:
 --network > DOTFILES_NETWORK_MODE > ~/.config/dotfiles/network.env > china
 ```
 
-- `china`: npmmirror for npm, RsProxy for Rust, and an npmmirror Node mirror.
+- `china`: npmmirror for npm, RsProxy for Rust, npmmirror for Node, goproxy.cn for Go, Tsinghua PyPI for Python, and verified GitHub mirror fallbacks.
 - `official`: official npm, Rust, and Node sources only.
 - `auto`: probes GitHub with a short timeout; uses official sources when stable and Chinese mirrors otherwise.
 
-The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, but never persist proxy addresses or rewrite system apt sources automatically. GitHub Releases keep their official HTTPS URLs and use the system proxy when available. Read [network and mirrors](docs/network-and-mirrors.md) for details.
+The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, add retries and timeouts to apt, and keep existing apt sources unchanged. GitHub Releases and pinned Git repositories try verified mirror fallbacks in China mode, then use the official URL with checksum or commit verification. Read [network and mirrors](docs/network-and-mirrors.md) for details.
 
 Bash and Zsh share `proxy_on` / `proxy_off` helpers. The default proxy is `http://127.0.0.1:7897`:
 
@@ -147,7 +147,7 @@ Create these files yourself when needed. The project reads them but never deploy
 ```text
 ~/.config/shell/local.sh           # private shell settings
 ~/.config/git/config.local         # user.name, user.email, company Git settings, etc.
-~/.config/dotfiles/network.env     # machine-local network mode
+~/.config/dotfiles/network.env     # machine-local network, proxy, and mirror overrides
 ```
 
 `local.sh` is loaded only when ownership and permissions are safe. Keep SSH/GPG keys, API tokens, npm tokens, and GitHub tokens outside the repository. See [local configuration](docs/local-config.md), [customization](docs/customization.md), and [security](docs/security.md).
