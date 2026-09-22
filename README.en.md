@@ -59,7 +59,7 @@ Interactive use defaults to `workstation` when no profile is supplied. Scripts, 
 Start by reviewing the plan; it makes no changes:
 
 ```bash
-git clone <your-repository-url> dotfiles
+git clone git@github.com:ddocde/dotfiles.git dotfiles
 cd dotfiles
 
 ./setup.sh plan workstation --network china

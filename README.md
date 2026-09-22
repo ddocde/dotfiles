@@ -59,7 +59,7 @@ wezterm
 先查看计划；这一步不会修改系统：
 
 ```bash
-git clone <你的仓库地址> dotfiles
+git clone git@github.com:ddocde/dotfiles.git dotfiles
 cd dotfiles
 
 ./setup.sh plan workstation --network china
