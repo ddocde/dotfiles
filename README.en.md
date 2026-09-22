@@ -174,7 +174,7 @@ See [troubleshooting](docs/troubleshooting.md) for recovery steps.
 ./scripts/docker-build-test.sh
 ```
 
-Real installation verification belongs only in the documented Docker environment; do not run a full installation directly on a development host. See [testing](docs/testing.md) and [CONTRIBUTING](CONTRIBUTING.md).
+Real installation verification belongs only in the documented Docker environment; do not run a full installation directly on a development host. Follow the [manual Docker verification guide](docs/manual-verification.md) for the complete hands-on procedure, and see [testing](docs/testing.md) and [CONTRIBUTING](CONTRIBUTING.md) for project policy.
 
 ## License and attribution
 

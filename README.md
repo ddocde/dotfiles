@@ -174,7 +174,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 ./scripts/docker-build-test.sh
 ```
 
-真实安装验证仅应在文档规定的 Docker 环境中进行，不要在开发宿主机直接运行完整安装。测试策略与容器命令见[测试说明](docs/testing.md)和[贡献指南](CONTRIBUTING.md)。
+真实安装验证仅应在文档规定的 Docker 环境中进行，不要在开发宿主机直接运行完整安装。亲自验证时按[手动 Docker 验证指南](docs/manual-verification.md)执行；测试策略见[测试说明](docs/testing.md)和[贡献指南](CONTRIBUTING.md)。
 
 ## 许可证与致谢
 

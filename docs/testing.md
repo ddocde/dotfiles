@@ -4,6 +4,8 @@
 
 Real installation is allowed only inside `glcr.rd.ubtrobot.com/rosa/images/rust:ubuntu24.04`. Never run a complete workstation install on the host.
 
+For a complete Chinese step-by-step procedure, including a persistent interactive container, progress inspection, idempotency checks, command verification, and conflict protection, read [manual verification](manual-verification.md).
+
 ## Build the verification image
 
 ```bash
