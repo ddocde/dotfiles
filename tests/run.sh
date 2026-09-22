@@ -37,6 +37,7 @@ fi
 output=$("$ROOT/setup.sh" plan minimal --network official)
 assert_contains "$output" 'core             required' 'minimal profile expands'
 assert_contains "$output" 'Network: official' 'CLI network mode wins'
+if [[ -f $ROOT/modules/network/README.md ]]; then ok 'virtual network module is repository-visible'; else not_ok 'virtual network module is repository-visible'; fi
 
 mirror=$(DOTFILES_CONFIG_DIR=/nonexistent NETWORK_MODE=china bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$MISE_NODE_MIRROR_URL"' _ "$ROOT")
 if [[ $mirror == */ ]]; then ok 'mise node mirror keeps required trailing slash'; else not_ok 'mise node mirror keeps required trailing slash'; fi
