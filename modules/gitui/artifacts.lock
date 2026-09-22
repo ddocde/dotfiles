@@ -1,0 +1,2 @@
+# name	version	url	sha256	target
+gitui	0.27.0	https://github.com/extrawurst/gitui/releases/download/v0.27.0/gitui-linux-x86_64.tar.gz	e58bd776170ac71e4e576c60ebaa7ccfb770f079e78eb4b2d3f4c0d4feafdd9f	gitui-v0.27.0-linux-x86_64.tar.gz

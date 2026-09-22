@@ -12,7 +12,7 @@ proxy_state=$(
     unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy NO_PROXY no_proxy
     # shellcheck source=/dev/null
     source "$ROOT/modules/shell-common/config/functions.sh"
-    proxy_on >/dev/null
+    proxy_on 'http://127.0.0.1:7897' >/dev/null
     printf '%s|%s|%s|' "$HTTP_PROXY" "$http_proxy" "$NO_PROXY"
     proxy_off >/dev/null
     if [[ -z ${HTTP_PROXY+x} && -z ${http_proxy+x} && -z ${NO_PROXY+x} ]]; then
@@ -27,8 +27,7 @@ fi
 
 if (
     source "$ROOT/modules/shell-common/config/functions.sh"
-    DOTFILES_PROXY_URL='invalid://127.0.0.1:7897'
-    proxy_on
+    proxy_on 'invalid://127.0.0.1:7897'
 ) >/dev/null 2>&1; then
     not_ok 'proxy helper rejects unsupported URL schemes'
 else
@@ -39,7 +38,7 @@ output=$("$ROOT/setup.sh" plan minimal --network official)
 assert_contains "$output" 'core             required' 'minimal profile expands'
 assert_contains "$output" 'Network: official' 'CLI network mode wins'
 
-mirror=$(source "$ROOT/lib/logging.sh"; source "$ROOT/lib/network.sh"; DOTFILES_CONFIG_DIR=/nonexistent; NETWORK_MODE=china; load_network_mode; printf '%s' "$MISE_NODE_MIRROR_URL")
+mirror=$(DOTFILES_CONFIG_DIR=/nonexistent NETWORK_MODE=china bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$MISE_NODE_MIRROR_URL"' _ "$ROOT")
 if [[ $mirror == */ ]]; then ok 'mise node mirror keeps required trailing slash'; else not_ok 'mise node mirror keeps required trailing slash'; fi
 
 github_candidates=$(source "$ROOT/lib/logging.sh"; source "$ROOT/lib/network.sh"; DOTFILES_CONFIG_DIR=/nonexistent; NETWORK_MODE=china; load_network_mode; _github_candidates 'https://github.com/example/project/releases/download/v1/tool.tar.xz')
@@ -53,14 +52,16 @@ fi
 
 network_fixture=$(mktemp -d)
 printf '%s\n' 'DOTFILES_NETWORK_MODE=china' > "$network_fixture/network.env"
-network_mode=$(DOTFILES_CONFIG_DIR="$network_fixture" DOTFILES_NETWORK_MODE=official NETWORK_MODE= bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$NETWORK_MODE"' _ "$ROOT")
+network_mode=$(DOTFILES_CONFIG_DIR="$network_fixture" DOTFILES_NETWORK_MODE=official NETWORK_MODE='' bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$NETWORK_MODE"' _ "$ROOT")
 if [[ $network_mode == official ]]; then ok 'environment network mode overrides local config'; else not_ok 'environment network mode overrides local config'; fi
 
 output=$("$ROOT/setup.sh" plan workstation --network china)
 assert_contains "$output" 'helix            optional' 'optional module preserved'
-rust_line=$(grep -n '^  rust ' <<< "$output" | cut -d: -f1)
+shell_common_line=$(grep -n '^  shell-common ' <<< "$output" | cut -d: -f1)
 starship_line=$(grep -n '^  starship ' <<< "$output" | cut -d: -f1)
-if (( rust_line < starship_line )); then ok 'dependencies are topologically ordered'; else not_ok 'dependencies are topologically ordered'; fi
+mise_line=$(grep -n '^  mise ' <<< "$output" | cut -d: -f1)
+node_line=$(grep -n '^  node ' <<< "$output" | cut -d: -f1)
+if (( shell_common_line < starship_line && mise_line < node_line )); then ok 'dependencies are topologically ordered'; else not_ok 'dependencies are topologically ordered'; fi
 
 if (source "$ROOT/lib/logging.sh"; source "$ROOT/lib/profile.sh"; DOTFILES_ROOT="$ROOT/tests/fixtures/cycle"; resolve_profile a) >/dev/null 2>&1; then
     not_ok 'profile include cycles are rejected'
@@ -113,6 +114,17 @@ if grep -q 'helix-25.07.1-x86_64-linux.tar.xz' "$ROOT/modules/helix/artifacts.lo
     ok 'helix uses a checksummed release artifact'
 else
     not_ok 'helix uses a checksummed release artifact'
+fi
+
+release_modules_ok=1
+for release_module in starship yazi gitui navi; do
+    [[ -s "$ROOT/modules/$release_module/artifacts.lock" ]] || release_modules_ok=0
+    if grep -q 'cargo_run install' "$ROOT/modules/$release_module/install.sh"; then release_modules_ok=0; fi
+done
+if (( release_modules_ok )); then
+    ok 'large Rust tools use checksummed release artifacts'
+else
+    not_ok 'large Rust tools use checksummed release artifacts'
 fi
 
 if (source "$ROOT/lib/logging.sh"; source "$ROOT/lib/common.sh"; source "$ROOT/lib/network.sh"; DRY_RUN=0; download_verified "file://$ROOT/tests/fixtures/artifact.txt" "0000000000000000000000000000000000000000000000000000000000000000" "$tmp_home/bad-artifact") >/dev/null 2>&1; then

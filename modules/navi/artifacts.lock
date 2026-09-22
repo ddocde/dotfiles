@@ -1,0 +1,2 @@
+# name	version	url	sha256	target
+navi	2.24.0	https://github.com/denisidoro/navi/releases/download/v2.24.0/navi-v2.24.0-x86_64-unknown-linux-musl.tar.gz	f334047479241f7c8b48d091f4e814dcc798a51a74dfd04ee63cbf67e8c921ba	navi-v2.24.0-x86_64-unknown-linux-musl.tar.gz

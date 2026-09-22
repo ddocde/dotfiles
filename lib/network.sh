@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 load_network_mode() {
-    local local_mode= key value config_github_mirrors= config_goproxy= config_pip_index_url=
-    local config_vscode_repo= config_wezterm_repo= config_proxy_url=
+    local local_mode='' key value config_github_mirrors='' config_goproxy='' config_pip_index_url=''
+    local config_vscode_repo='' config_wezterm_repo='' config_proxy_url=''
     if [[ -r $DOTFILES_CONFIG_DIR/network.env ]]; then
         while IFS='=' read -r key value || [[ -n $key ]]; do
             key=${key//[[:space:]]/}

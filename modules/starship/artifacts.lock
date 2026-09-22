@@ -1,0 +1,2 @@
+# name	version	url	sha256	target
+starship	1.23.0	https://github.com/starship/starship/releases/download/v1.23.0/starship-x86_64-unknown-linux-musl.tar.gz	8d06d2cc67aedd6316ff58ab679fb80cded0d85de1dcd5727df0633d35356d57	starship-v1.23.0-x86_64-unknown-linux-musl.tar.gz

@@ -2,7 +2,7 @@
 
 state_init() {
     (( DRY_RUN )) && return 0
-    mkdir -p -- "$DOTFILES_STATE_DIR" "$DOTFILES_CONFIG_DIR"
+    mkdir -p -- "$DOTFILES_STATE_DIR" "$DOTFILES_CONFIG_DIR" "$DOTFILES_CACHE_DIR" "$DOTFILES_DATA_DIR/bin"
     [[ -e $DOTFILES_CONFIG_DIR/npmrc ]] || install -m 0600 /dev/null "$DOTFILES_CONFIG_DIR/npmrc"
 }
 
