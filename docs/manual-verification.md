@@ -138,6 +138,7 @@ time ./setup.sh install workstation --yes --network china --verbose
 
 - apt 显示 `0 newly installed`；
 - mise 的 Node、Python 和 Go 显示 `already installed`；
+- 固定 Rust 工具链、LSP 和 nrm 已满足锁定版本时不再重复下载；
 - 固定 Release 文件显示 `verified existing download`；
 - xdotter 部署项显示 `already correct`；
 - 不会覆盖普通文件，不会执行 `apt autoremove`；

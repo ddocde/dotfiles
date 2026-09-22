@@ -22,6 +22,16 @@ export DRY_RUN ASSUME_YES VERBOSE PURGE_PACKAGES
 die() { log_error "$*"; return 1; }
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
+npm_global_version_matches() {
+    local package=$1 expected=$2 manifest="$DOTFILES_DATA_DIR/npm/lib/node_modules/$1/package.json" actual
+    [[ -r $manifest ]] || return 1
+    actual=$(LC_ALL=C awk '
+        BEGIN { RS="\"version\"[[:space:]]*:[[:space:]]*\""; FS="\"" }
+        NR == 2 { print $1; exit }
+    ' "$manifest")
+    [[ $actual == "$expected" ]]
+}
+
 run() {
     if (( DRY_RUN )); then
         printf '[dry-run]'

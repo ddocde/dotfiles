@@ -109,6 +109,31 @@ else
     not_ok 'npm-backed doctors run with managed node'
 fi
 
+npm_fixture=$(mktemp -d)
+mkdir -p "$npm_fixture/npm/lib/node_modules/example-package"
+printf '%s\n' '{"name":"example-package","version":"1.2.3"}' > "$npm_fixture/npm/lib/node_modules/example-package/package.json"
+if (source "$ROOT/lib/common.sh"; DOTFILES_DATA_DIR="$npm_fixture"; npm_global_version_matches example-package 1.2.3) &&
+    ! (source "$ROOT/lib/common.sh"; DOTFILES_DATA_DIR="$npm_fixture"; npm_global_version_matches example-package 9.9.9); then
+    ok 'fixed npm package versions can skip reinstall'
+else
+    not_ok 'fixed npm package versions can skip reinstall'
+fi
+
+state_fixture=$(mktemp -d)
+DRY_RUN=0 DOTFILES_STATE_DIR="$state_fixture" bash -c '
+    source "$1/lib/state.sh"
+    record_version example 1.0
+    record_version other 3.0
+    record_version example 2.0
+' _ "$ROOT"
+if [[ $(grep -c '^example[[:space:]]' "$state_fixture/installed-versions.tsv") == 1 ]] &&
+    grep -q $'^example\t2.0$' "$state_fixture/installed-versions.tsv" &&
+    grep -q $'^other\t3.0$' "$state_fixture/installed-versions.tsv"; then
+    ok 'installed version state replaces stale values'
+else
+    not_ok 'installed version state replaces stale values'
+fi
+
 if grep -q 'helix-25.07.1-x86_64-linux.tar.xz' "$ROOT/modules/helix/artifacts.lock" &&
     ! grep -q 'cargo_run install.*helix' "$ROOT/modules/helix/install.sh"; then
     ok 'helix uses a checksummed release artifact'

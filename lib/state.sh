@@ -23,7 +23,13 @@ record_uninstalled() {
     awk -v module="$module" '$0 != module' "$file" > "$tmp"
     mv -f -- "$tmp" "$file"
 }
-record_version() { atomic_append_unique "$DOTFILES_STATE_DIR/installed-versions.tsv" "$1"$'\t'"$2"; }
+record_version() {
+    local key=$1 value=$2 file="$DOTFILES_STATE_DIR/installed-versions.tsv" tmp
+    (( DRY_RUN )) && return 0
+    tmp=$(mktemp "$DOTFILES_STATE_DIR/.state.XXXXXX") || return 1
+    { [[ -f $file ]] && awk -F '\t' -v key="$key" '$1 != key' "$file"; printf '%s\t%s\n' "$key" "$value"; } > "$tmp"
+    mv -f -- "$tmp" "$file"
+}
 record_run() {
     (( DRY_RUN )) && return 0
     _atomic_log "$DOTFILES_STATE_DIR/last-run.tsv" "$(date -u +%FT%TZ)"$'\t'"$1"$'\t'"$2"$'\t'"$3"
