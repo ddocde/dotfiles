@@ -5,5 +5,9 @@ The architecture was informed by CNCSMonster/dotfiles. No configuration
 payload or Git history is copied from that repository. Phase-1 audit documents
 are retained in docs/upstream-analysis/ as project research.
 
+General workflow and reliability ideas were compared with chezmoi, Dotbot,
+and yadm. No implementation code or configuration payload was copied from
+those projects. See docs/open-source-review.md.
+
 The vendored xdotter executable is distributed under its upstream license.
 See vendor/xdotter/LICENSE and vendor/xdotter/SOURCE.

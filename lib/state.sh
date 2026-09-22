@@ -1,9 +1,43 @@
 #!/usr/bin/env bash
 
+RUN_LOCK_DIR=''
+
 state_init() {
     (( DRY_RUN )) && return 0
     mkdir -p -- "$DOTFILES_STATE_DIR" "$DOTFILES_CONFIG_DIR" "$DOTFILES_CACHE_DIR" "$DOTFILES_DATA_DIR/bin"
     [[ -e $DOTFILES_CONFIG_DIR/npmrc ]] || install -m 0600 /dev/null "$DOTFILES_CONFIG_DIR/npmrc"
+}
+
+acquire_run_lock() {
+    (( DRY_RUN )) && return 0
+    local lock="$DOTFILES_STATE_DIR/run.lock" owner=''
+    if ! mkdir -- "$lock" 2>/dev/null; then
+        [[ -r $lock/pid ]] && IFS= read -r owner < "$lock/pid"
+        if [[ $owner =~ ^[0-9]+$ ]] && kill -0 "$owner" 2>/dev/null; then
+            die "another dotfiles operation is running (pid $owner)"
+            return 1
+        fi
+        log_warn "removing stale dotfiles run lock${owner:+ (pid $owner)}"
+        rm -f -- "$lock/pid" || return 1
+        rmdir -- "$lock" 2>/dev/null || { die "cannot recover run lock: $lock"; return 1; }
+        mkdir -- "$lock" || return 1
+    fi
+    printf '%s\n' "$$" > "$lock/pid" || {
+        rm -f -- "$lock/pid"
+        rmdir -- "$lock" 2>/dev/null || true
+        return 1
+    }
+    RUN_LOCK_DIR=$lock
+}
+
+release_run_lock() {
+    [[ -n ${RUN_LOCK_DIR:-} && -d $RUN_LOCK_DIR ]] || return 0
+    local owner=''
+    [[ -r $RUN_LOCK_DIR/pid ]] && IFS= read -r owner < "$RUN_LOCK_DIR/pid"
+    [[ $owner == "$$" ]] || return 0
+    rm -f -- "$RUN_LOCK_DIR/pid"
+    rmdir -- "$RUN_LOCK_DIR" 2>/dev/null || true
+    RUN_LOCK_DIR=''
 }
 
 atomic_append_unique() {

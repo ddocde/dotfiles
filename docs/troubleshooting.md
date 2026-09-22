@@ -5,3 +5,4 @@
 - Optional failure: review `~/.local/state/dotfiles/failures.tsv`, fix the module, and rerun.
 - Broken shell cache: rerun the owning module update; shell startup never rebuilds or downloads automatically.
 - xdotter checksum failure: restore the exact v0.5.2 asset and compare `vendor/xdotter/SHA256SUMS`.
+- Active run lock: allow the reported process to finish. Do not delete its lock; a later invocation automatically recovers a stale lock after the recorded process no longer exists.

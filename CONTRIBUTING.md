@@ -6,6 +6,7 @@ Before a change, run `./setup.sh plan <profile>`. After it:
 
 ```bash
 bash -n setup.sh lib/*.sh modules/*/*.sh scripts/*.sh tests/*.sh
+shellcheck setup.sh lib/*.sh modules/*/*.sh scripts/*.sh tests/*.sh
 ./tests/run.sh
 git diff --check
 ```

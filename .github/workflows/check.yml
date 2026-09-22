@@ -8,4 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: bash -n setup.sh lib/*.sh modules/*/*.sh scripts/*.sh tests/*.sh
+      - run: shellcheck setup.sh lib/*.sh modules/*/*.sh scripts/*.sh tests/*.sh
       - run: ./tests/run.sh

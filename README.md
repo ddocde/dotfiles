@@ -85,6 +85,9 @@ cd dotfiles
 # 展开 Profile、依赖和执行顺序
 ./setup.sh plan developer
 
+# 只读预览配置链接变化和冲突
+./setup.sh status developer
+
 # 只部署配置，或只检查当前机器状态
 ./setup.sh deploy minimal --yes
 ./setup.sh doctor developer --yes
@@ -157,6 +160,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 - xdotter 发现目标文件已存在时默认拒绝覆盖；请先审阅并手动移动该文件，再重新部署。
 - `uninstall` 只撤销链接并清理模块自己创建的文件；apt 包默认保留，且项目绝不自动运行 `apt autoremove`。
 - 状态、失败记录和安装版本保存在 XDG 状态目录，供排错使用；`doctor` 始终以实际系统为准。
+- 会修改状态的命令使用每用户运行锁，拒绝同一个状态目录上的并发安装。
 
 遇到问题先运行：
 
@@ -166,6 +170,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 ```
 
 更具体的恢复步骤请看[故障排除](docs/troubleshooting.md)。
+项目对成熟开源 dotfiles 工具的取舍记录见[开源项目对照审查](docs/open-source-review.md)。
 
 ## 开发与验证
 

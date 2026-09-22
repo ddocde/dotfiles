@@ -13,8 +13,8 @@ usage() {
     cat <<'EOF'
 Usage:
   ./setup.sh list
-  ./setup.sh <plan|install|deploy|doctor|update|uninstall> [PROFILE] [OPTIONS]
-  ./setup.sh module <plan|install|deploy|doctor|update|uninstall> MODULE [OPTIONS]
+  ./setup.sh <plan|status|install|deploy|doctor|update|uninstall> [PROFILE] [OPTIONS]
+  ./setup.sh module <plan|status|install|deploy|doctor|update|uninstall> MODULE [OPTIONS]
 
 Options:
   --dry-run                 print actions without modifying the system
@@ -31,7 +31,7 @@ declare -a ENABLED_MODULES=() DISABLED_MODULES=()
 COMMAND=${1:-}; [[ -n $COMMAND ]] || { usage; exit 2; }; shift || true
 MODULE_MODE=0
 if [[ $COMMAND == module ]]; then MODULE_MODE=1; COMMAND=${1:-}; shift || true; fi
-case $COMMAND in list|plan|install|deploy|doctor|update|uninstall) ;; -h|--help) usage; exit 0;; *) usage >&2; exit 2;; esac
+case $COMMAND in list|plan|status|install|deploy|doctor|update|uninstall) ;; -h|--help) usage; exit 0;; *) usage >&2; exit 2;; esac
 
 TARGET=
 if [[ $COMMAND != list && ${1:-} != --* ]]; then TARGET=$1; shift; fi
@@ -80,8 +80,30 @@ show_plan() {
 
 load_network_mode
 if [[ $COMMAND == plan ]]; then show_plan; exit 0; fi
+if [[ $COMMAND == status ]]; then
+    DRY_RUN=1
+    log_info 'configuration status (read-only)'
+    run_modules deploy
+    (( RUN_HAD_OPTIONAL_FAILURES == 0 ))
+    exit
+fi
 if is_noninteractive && (( ! ASSUME_YES )); then die 'non-interactive mutations require --yes'; exit 1; fi
 state_init
+acquire_run_lock
+
+RUN_TRACKING=1
+RUN_RECORDED=0
+RUN_TARGET=${TARGET:-modules}
+_finish_setup() {
+    local rc=$?
+    trap - EXIT
+    if (( RUN_TRACKING && ! RUN_RECORDED && rc != 0 )); then
+        record_run "$COMMAND" "$RUN_TARGET" failure || true
+    fi
+    release_run_lock || true
+    exit "$rc"
+}
+trap _finish_setup EXIT
 
 case $COMMAND in
     install)
@@ -108,4 +130,10 @@ case $COMMAND in
         purge_collected_packages
         ;;
 esac
-record_run "$COMMAND" "${TARGET:-modules}" success
+if (( RUN_HAD_OPTIONAL_FAILURES )); then
+    record_run "$COMMAND" "$RUN_TARGET" failure
+    RUN_RECORDED=1
+    exit 1
+fi
+record_run "$COMMAND" "$RUN_TARGET" success
+RUN_RECORDED=1

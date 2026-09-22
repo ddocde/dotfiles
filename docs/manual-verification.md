@@ -97,10 +97,11 @@ Rustup 可能提示当前 `HOME` 与容器账号的 passwd HOME 不同。在这�
 
 ```bash
 ./setup.sh plan workstation --network china
+./setup.sh status workstation --network china
 ./setup.sh install workstation --yes --network china --dry-run
 ```
 
-这两条命令不应安装包、下载文件或调用 `sudo`。计划中应包含 `workstation` 的全部模块，`helix` 标记为 `optional`。
+这三条命令不应安装包、下载文件或调用 `sudo`。`status` 会只读显示每个 xdotter 链接将被创建、保持还是因冲突拒绝。计划中应包含 `workstation` 的全部模块，`helix` 标记为 `optional`。
 
 ## 6. 第一次完整安装
 

@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
 
 declare -Ag MODULE_RESULT=()
-OPTIONAL_FAILURES=0
+declare -Ag MODULE_BLOCKED=()
+RUN_HAD_OPTIONAL_FAILURES=0
 
 run_module_action() {
     local action=$1 module=$2 script="$DOTFILES_ROOT/modules/$2/$1.sh" rc=0 dep
+    if [[ $action != uninstall && ${MODULE_BLOCKED[$module]:-0} == 1 ]]; then
+        MODULE_RESULT[$module]=skipped; module_event "$module" skipped; return 0
+    fi
     if [[ -f $DOTFILES_ROOT/modules/$module/depends.list ]]; then
         while IFS= read -r dep; do
             dep=${dep%%#*}; dep=${dep//[[:space:]]/}; [[ -n $dep ]] || continue
             if [[ ${MODULE_RESULT[$dep]:-success} != success ]]; then
-                MODULE_RESULT[$module]=skipped; module_event "$module" skipped; return 0
+                MODULE_RESULT[$module]=skipped; MODULE_BLOCKED[$module]=1; module_event "$module" skipped; return 0
             fi
         done < "$DOTFILES_ROOT/modules/$module/depends.list"
     fi
@@ -31,13 +35,18 @@ run_module_action() {
         return 0
     fi
     MODULE_RESULT[$module]=failure; module_event "$module" failure; record_failure "$module" "$action:$rc"
-    if [[ ${PROFILE_OPTIONAL[$module]:-0} == 1 ]]; then OPTIONAL_FAILURES=1; log_warn "optional module failed: $module"; return 0; fi
+    if [[ ${PROFILE_OPTIONAL[$module]:-0} == 1 ]]; then
+        RUN_HAD_OPTIONAL_FAILURES=1
+        MODULE_BLOCKED[$module]=1
+        log_warn "optional module failed: $module"
+        return 0
+    fi
     die "required module failed: $module ($action, exit $rc)"
 }
 
 run_modules() {
     local action=$1 module
-    MODULE_RESULT=(); OPTIONAL_FAILURES=0
+    MODULE_RESULT=()
     if [[ $action == uninstall ]]; then
         local i
         for ((i=${#RESOLVED_MODULES[@]}-1; i>=0; i--)); do
@@ -46,5 +55,4 @@ run_modules() {
     else
         for module in "${RESOLVED_MODULES[@]}"; do run_module_action "$action" "$module"; done
     fi
-    (( OPTIONAL_FAILURES == 0 ))
 }

@@ -69,10 +69,79 @@ else
     ok 'profile include cycles are rejected'
 fi
 
-if (source "$ROOT/lib/logging.sh"; source "$ROOT/lib/common.sh"; source "$ROOT/lib/state.sh"; source "$ROOT/lib/network.sh"; source "$ROOT/lib/artifact.sh"; source "$ROOT/lib/module.sh"; export -f run die log_error download_verified record_version atomic_append_unique; DOTFILES_ROOT="$ROOT/tests/fixtures/failure"; PROFILE_OPTIONAL=(); DRY_RUN=0; run_module_action install bad) >/dev/null 2>&1; then
+if DRY_RUN=0 bash -c '
+    source "$1/lib/logging.sh"
+    source "$1/lib/common.sh"
+    source "$1/lib/state.sh"
+    source "$1/lib/network.sh"
+    source "$1/lib/artifact.sh"
+    source "$1/lib/module.sh"
+    DOTFILES_ROOT=$2
+    declare -A PROFILE_OPTIONAL=()
+    run_module_action install bad
+' _ "$ROOT" "$ROOT/tests/fixtures/failure" >/dev/null 2>&1; then
     not_ok 'required module failures propagate'
 else
     ok 'required module failures propagate'
+fi
+
+optional_fixture=$(mktemp -d)
+export TEST_OPTIONAL_MARKER="$optional_fixture/continued" TEST_DOWNSTREAM_MARKER="$optional_fixture/downstream"
+if (
+    source "$ROOT/lib/logging.sh"
+    source "$ROOT/lib/common.sh"
+    source "$ROOT/lib/state.sh"
+    source "$ROOT/lib/artifact.sh"
+    source "$ROOT/lib/module.sh"
+    DOTFILES_ROOT="$ROOT/tests/fixtures/optional"
+    DOTFILES_STATE_DIR="$optional_fixture/state"
+    mkdir -p "$DOTFILES_STATE_DIR"
+    DRY_RUN=0
+    declare -A PROFILE_OPTIONAL=([bad]=1)
+    RESOLVED_MODULES=(bad downstream good)
+    run_modules install
+    run_modules deploy
+    (( RUN_HAD_OPTIONAL_FAILURES == 1 ))
+    [[ ${MODULE_RESULT[bad]} == skipped && ${MODULE_RESULT[downstream]} == skipped && ${MODULE_RESULT[good]} == success ]]
+    [[ -f $TEST_OPTIONAL_MARKER && ! -e $TEST_DOWNSTREAM_MARKER ]]
+) >/dev/null 2>&1; then
+    ok 'optional failures continue independent work and block dependents'
+else
+    not_ok 'optional failures continue independent work and block dependents'
+fi
+
+status_home=$(mktemp -d)
+status_output=$(HOME="$status_home" XDG_CONFIG_HOME="$status_home/.config" XDG_DATA_HOME="$status_home/.local/share" XDG_STATE_HOME="$status_home/.local/state" XDG_CACHE_HOME="$status_home/.cache" "$ROOT/setup.sh" status minimal --network official)
+if [[ $status_output == *'configuration status (read-only)'* && $status_output == *'Deploy plan'* ]] &&
+    [[ -z $(find "$status_home" -mindepth 1 -print -quit) ]]; then
+    ok 'status previews configuration without side effects'
+else
+    not_ok 'status previews configuration without side effects'
+fi
+
+lock_fixture=$(mktemp -d)
+mkdir "$lock_fixture/run.lock"
+printf '%s\n' "$$" > "$lock_fixture/run.lock/pid"
+if DRY_RUN=0 DOTFILES_STATE_DIR="$lock_fixture" bash -c '
+    source "$1/lib/logging.sh"
+    source "$1/lib/state.sh"
+    acquire_run_lock
+' _ "$ROOT" >/dev/null 2>&1; then
+    not_ok 'concurrent mutation lock rejects an active run'
+else
+    ok 'concurrent mutation lock rejects an active run'
+fi
+printf '%s\n' 99999999 > "$lock_fixture/run.lock/pid"
+if DRY_RUN=0 DOTFILES_STATE_DIR="$lock_fixture" bash -c '
+    source "$1/lib/logging.sh"
+    source "$1/lib/state.sh"
+    acquire_run_lock
+    release_run_lock
+' _ "$ROOT" >/dev/null 2>&1 &&
+    [[ ! -e $lock_fixture/run.lock ]]; then
+    ok 'stale mutation locks are recovered safely'
+else
+    not_ok 'stale mutation locks are recovered safely'
 fi
 
 mock_cache=$(mktemp -d)
