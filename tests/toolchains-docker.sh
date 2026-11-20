@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 [[ ${DOTFILES_DOCKER_TEST:-} == 1 && -f /.dockerenv ]] || exit 2
-export HOME=/home/tester/dotfiles-acceptance
+export HOME=${DOTFILES_TEST_HOME:-/home/tester/dotfiles-acceptance}
+[[ $HOME == /home/tester/dotfiles-* ]] || exit 2
 export XDG_DATA_HOME="$HOME/.local/share"
 fixture=$(mktemp -d)
 trap 'rm -rf -- "$fixture"' EXIT
@@ -19,4 +20,7 @@ GOPROXY=off GOSUMDB=off "$XDG_DATA_HOME/mise/installs/go/1.25.1/bin/go" build -o
 [[ $("$fixture/go") == 42 ]]
 [[ $("$XDG_DATA_HOME/mise/installs/node/24.8.0/bin/node" -e 'console.log(42)') == 42 ]]
 [[ $("$XDG_DATA_HOME/mise/installs/python/3.13.7/bin/python3" -c 'print(42)') == 42 ]]
+"$XDG_DATA_HOME/mise/installs/python/3.13.7/bin/python3" -c 'import ssl, sqlite3, venv'
+"$XDG_DATA_HOME/mise/installs/python/3.13.7/bin/python3" -m venv "$fixture/venv"
+"$fixture/venv/bin/python" -m pip --version >/dev/null
 printf 'C/C++/Rust/Go compile-and-run and Node/Python execution: passed\n'

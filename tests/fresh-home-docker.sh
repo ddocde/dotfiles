@@ -27,4 +27,5 @@ test ! -e "$HOME/.codex/auth.json"
 test ! -e "$HOME/.claude/.credentials.json"
 bash -lc 'node --version; python --version; go version'
 zsh -ic '(( $+functions[proxy_on] )); [[ -n $HISTFILE ]]'
+DOTFILES_TEST_HOME="$HOME" bash tests/toolchains-docker.sh
 printf 'FRESH HOME PASSED time=%s\n' "$(date -u +%FT%TZ)"
