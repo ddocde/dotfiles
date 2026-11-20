@@ -1,0 +1,3 @@
+# Bootstrap-only configuration; the user's global mise config is deployed separately.
+[tools]
+go = "1.25.1"

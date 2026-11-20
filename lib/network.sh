@@ -34,6 +34,7 @@ load_network_mode() {
     if [[ $NETWORK_MODE == china ]]; then
         NPM_REGISTRY=https://registry.npmmirror.com
         MISE_NODE_MIRROR_URL=https://npmmirror.com/mirrors/node/
+        MISE_GO_DOWNLOAD_MIRROR=https://mirrors.nju.edu.cn/golang
         RUSTUP_DIST_SERVER=https://rsproxy.cn
         RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
         GOPROXY=${DOTFILES_GOPROXY:-${config_goproxy:-https://goproxy.cn,direct}}
@@ -42,6 +43,7 @@ load_network_mode() {
     else
         NPM_REGISTRY=https://registry.npmjs.org
         MISE_NODE_MIRROR_URL=https://nodejs.org/dist/
+        MISE_GO_DOWNLOAD_MIRROR=https://dl.google.com/go
         RUSTUP_DIST_SERVER=https://static.rust-lang.org
         RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
         GOPROXY=${DOTFILES_GOPROXY:-${config_goproxy:-https://proxy.golang.org,direct}}
@@ -56,15 +58,15 @@ load_network_mode() {
         export http_proxy="$proxy_url" https_proxy="$proxy_url"
     fi
     NPM_CONFIG_USERCONFIG="$DOTFILES_CONFIG_DIR/npmrc"
-    export NETWORK_MODE NPM_REGISTRY NPM_CONFIG_USERCONFIG MISE_NODE_MIRROR_URL
+    export NETWORK_MODE NPM_REGISTRY NPM_CONFIG_USERCONFIG MISE_NODE_MIRROR_URL MISE_GO_DOWNLOAD_MIRROR
     export RUSTUP_DIST_SERVER RUSTUP_UPDATE_ROOT GOPROXY PIP_INDEX_URL GITHUB_MIRRORS
     export DOTFILES_VSCODE_APT_REPO DOTFILES_WEZTERM_APT_REPO
 }
 
 _github_candidates() {
     local url=$1 mirror
-    if [[ $url == https://rsproxy.cn/rustup/dist/* ]]; then
-        printf '%s\n' "$url" "https://static.rust-lang.org/rustup/dist/${url#https://rsproxy.cn/rustup/dist/}"
+    if [[ $url == https://rsproxy.cn/rustup/dist/* || $url == https://rsproxy.cn/rustup/archive/* ]]; then
+        printf '%s\n' "$url" "https://static.rust-lang.org/rustup/${url#https://rsproxy.cn/rustup/}"
         return 0
     fi
     [[ $url == https://github.com/* ]] || { printf '%s\n' "$url"; return 0; }
@@ -99,6 +101,10 @@ run_with_source_fallback() {
         node)
             primary=(MISE_NODE_MIRROR_URL="$MISE_NODE_MIRROR_URL")
             official=(MISE_NODE_MIRROR_URL=https://nodejs.org/dist/)
+            ;;
+        go)
+            primary=(MISE_GO_DOWNLOAD_MIRROR="$MISE_GO_DOWNLOAD_MIRROR")
+            official=(MISE_GO_DOWNLOAD_MIRROR=https://dl.google.com/go)
             ;;
         rust)
             primary=(RUSTUP_DIST_SERVER="$RUSTUP_DIST_SERVER" RUSTUP_UPDATE_ROOT="$RUSTUP_UPDATE_ROOT")
