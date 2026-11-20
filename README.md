@@ -66,7 +66,7 @@ cd dotfiles
 ./setup.sh install workstation --yes --network china
 ```
 
-Ubuntu 20.04 及之后版本可显式选择清华 apt 镜像（自动识别系统版本，保留 security 和自定义源）：
+Ubuntu 20.04 及之后版本安装/更新时默认启用清华 apt 镜像（自动识别系统版本，替换基础仓库的公司/自定义镜像，保留官方 security 和第三方软件仓库）：
 
 ```bash
 ./setup.sh install workstation --yes --network china --apt-mirror tuna
@@ -74,7 +74,7 @@ Ubuntu 20.04 及之后版本可显式选择清华 apt 镜像（自动识别系�
 ./setup.sh apt-mirror restore --yes
 ```
 
-换源前会保留原文件备份；未指定 `--apt-mirror` 时沿用机器当前源。只适配 apt 源不代表完整工具集已在所有 Ubuntu 20+ 版本通过验证，完整安装的主要验证平台仍为 Ubuntu 24.04 x86_64。
+换源前会备份原文件；`--apt-mirror keep` 可保留当前源，且与 `--network` 模式独立。apt 源是系统文件，不使用用户配置符号链接，恢复请执行 `./setup.sh apt-mirror restore --yes`。只适配 apt 源不代表完整工具集已在所有 Ubuntu 20+ 版本通过验证，完整安装的主要验证平台仍为 Ubuntu 24.04 x86_64。
 
 首次运行需要 Bash、Git、curl、CA 证书；在非 root 的 Linux 上，安装系统包还需要 `sudo`。`install` 会依次完成网络预检、系统依赖安装、模块安装、配置部署和 `doctor`。
 
@@ -120,6 +120,7 @@ Ubuntu 20.04 及之后版本可显式选择清华 apt 镜像（自动识别系�
 | `--dry-run` | 只打印操作，不产生副作用 |
 | `--yes` | 非交互执行；遇到配置冲突直接失败 |
 | `--network auto\|china\|official` | 选择网络与镜像策略 |
+| `--apt-mirror tuna\|keep` | Ubuntu 默认清华源；keep 保留当前源 |
 | `--enable MODULE` | 在当前 Profile 末尾加入模块 |
 | `--disable MODULE` | 从当前 Profile 移除模块 |
 | `--purge-packages` | 仅在 uninstall 时考虑删除选中 apt 包 |
@@ -139,7 +140,7 @@ Ubuntu 20.04 及之后版本可显式选择清华 apt 镜像（自动识别系�
 - `official`：仅使用官方 npm、Rust 和 Node 源。
 - `auto`：用短超时探测 GitHub，稳定时使用官方源，否则使用国内镜像。
 
-脚本会继承 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 及其小写形式，并为 apt 增加重试和超时。GitHub Release 和固定 Git 仓库在中国模式下会先尝试已验证的镜像，校验通过后才会写入。完整细节见[网络与镜像](docs/network-and-mirrors.md)。
+脚本会继承 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY` 及其小写形式，并为 apt 增加重试和超时。GitHub Release 和固定 Git 仓库在中国模式下会先尝试已验证的镜像，校验通过后才会写入。npm、Node、Rust 在中国模式下镜像失败后重试官方源；official 模式只使用官方源。GitHub 文件下载带低速检测。仅在选择 npm 工具时预检 npm，失败只警告，由实际安装处理回退。完整细节见[网络与镜像](docs/network-and-mirrors.md)。
 
 Bash 和 Zsh 共享 `proxy_on` / `proxy_off` 代理开关，默认连接 `http://127.0.0.1:7897`：
 

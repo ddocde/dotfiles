@@ -66,14 +66,14 @@ cd dotfiles
 ./setup.sh install workstation --yes --network china
 ```
 
-On Ubuntu 20.04 or newer, explicitly select the TUNA apt mirror with automatic release detection:
+On Ubuntu 20.04 or newer, install/update defaults to the TUNA apt mirror with automatic release detection:
 
 ```bash
 ./setup.sh install workstation --yes --network china --apt-mirror tuna
 ./setup.sh apt-mirror restore --yes
 ```
 
-Original source files are backed up. Security and custom repositories stay unchanged; apt sources stay unchanged by default. Mirror compatibility does not imply that the complete tool set is verified on every Ubuntu release; Ubuntu 24.04 x86_64 remains the primary installation test platform.
+Original files are backed up. Ubuntu base archives, including company proxies, switch to TUNA; official security and third-party repositories are retained. Use `--apt-mirror keep` to keep existing sources independently of network mode. These are system files, not user symlinks; use `apt-mirror restore --yes` to revert. Mirror compatibility does not imply that the complete tool set is verified on every Ubuntu release; Ubuntu 24.04 x86_64 remains the primary installation test platform.
 
 The first run requires Bash, Git, curl, CA certificates, and `sudo` for system packages when not root. `install` performs network preflight, system dependency installation, module installation, configuration deployment, and `doctor` in that order.
 
@@ -138,7 +138,7 @@ The default mode is `china`, selected in this order:
 - `official`: official npm, Rust, and Node sources only.
 - `auto`: probes GitHub with a short timeout; uses official sources when stable and Chinese mirrors otherwise.
 
-The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, add retries and timeouts to apt, and keep existing apt sources unchanged. GitHub Releases and pinned Git repositories try verified mirror fallbacks in China mode, then use the official URL with checksum or commit verification. Read [network and mirrors](docs/network-and-mirrors.md) for details.
+The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, add retries and timeouts to apt, and switch Ubuntu base archives to TUNA by default. GitHub Releases and pinned Git repositories try verified mirror fallbacks in China mode, then use the official URL with checksum or commit verification. npm, Node, and Rust retry official sources after mirror failure in China mode. Official mode never adds mirror fallback. npm preflight runs only for selected npm tools and warns rather than blocks. Read [network and mirrors](docs/network-and-mirrors.md) for details.
 
 Bash and Zsh share `proxy_on` / `proxy_off` helpers. The default proxy is `http://127.0.0.1:7897`:
 

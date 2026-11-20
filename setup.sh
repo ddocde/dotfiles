@@ -8,6 +8,7 @@ for library in logging common platform network profile dependency state artifact
 done
 export -f log_info log_warn log_error log_debug run die command_exists npm_global_version_matches
 export -f _github_candidates download_verified cargo_run git_checkout_verified record_version atomic_append_unique
+export -f run_with_source_fallback npm_install_global
 
 usage() {
     cat <<'EOF'
@@ -21,7 +22,7 @@ Options:
   --dry-run                 print actions without modifying the system
   --yes                     non-interactive operation; conflicts fail
   --network MODE            auto, china, or official
-  --apt-mirror MODE         keep (default) or tuna; Ubuntu 20.04+
+  --apt-mirror MODE         tuna (Ubuntu default) or keep
   --enable MODULE           add a module to a profile
   --disable MODULE          remove a module from a profile
   --purge-packages          remove selected apt packages on uninstall
@@ -32,7 +33,7 @@ EOF
 declare -a ENABLED_MODULES=() DISABLED_MODULES=()
 COMMAND=${1:-}; [[ -n $COMMAND ]] || { usage; exit 2; }; shift || true
 MODULE_MODE=0
-APT_MIRROR=keep
+APT_MIRROR=''
 if [[ $COMMAND == module ]]; then MODULE_MODE=1; COMMAND=${1:-}; shift || true; fi
 case $COMMAND in apt-mirror|list|plan|status|install|deploy|doctor|update|uninstall) ;; -h|--help) usage; exit 0;; *) usage >&2; exit 2;; esac
 
@@ -54,6 +55,14 @@ while (($#)); do
 done
 
 detect_platform
+if [[ -z $APT_MIRROR ]]; then
+    APT_MIRROR=keep
+    if [[ $DOTFILES_OS == linux && $COMMAND =~ ^(install|update|plan)$ ]]; then
+        if (source /etc/os-release; [[ $ID == ubuntu && ${VERSION_ID%%.*} -ge 20 ]]); then
+            APT_MIRROR=tuna
+        fi
+    fi
+fi
 case $APT_MIRROR in keep|tuna) ;; *) die 'invalid --apt-mirror mode: use keep or tuna'; exit 2;; esac
 if [[ $COMMAND == apt-mirror ]]; then
     [[ $TARGET == tuna || $TARGET == restore ]] || { die 'apt-mirror requires tuna or restore'; exit 2; }

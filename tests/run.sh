@@ -37,6 +37,11 @@ fi
 output=$("$ROOT/setup.sh" plan minimal --network official)
 assert_contains "$output" 'core             required' 'minimal profile expands'
 assert_contains "$output" 'Network: official' 'CLI network mode wins'
+if bash "$ROOT/tests/network-fallback.sh" >/dev/null 2>&1; then
+    ok 'network source fallback and selective preflight'
+else
+    not_ok 'network source fallback and selective preflight'
+fi
 
 apt_rendered=$(APT_MIRROR_URL=https://mirrors.tuna.tsinghua.edu.cn/ubuntu bash -c '
     source "$1/lib/apt-mirror.sh"
@@ -115,6 +120,8 @@ if (
     mkdir -p "$DOTFILES_STATE_DIR"
     DRY_RUN=0
     declare -A PROFILE_OPTIONAL=([bad]=1)
+    # This fixture intentionally scopes its resolved modules to a subshell.
+    # shellcheck disable=SC2030
     RESOLVED_MODULES=(bad downstream good)
     run_modules install
     run_modules deploy

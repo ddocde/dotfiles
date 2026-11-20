@@ -22,7 +22,9 @@ load_network_mode() {
     fi
     NETWORK_MODE=${NETWORK_MODE:-${DOTFILES_NETWORK_MODE:-${local_mode:-china}}}
     case $NETWORK_MODE in auto|china|official) ;; *) die "invalid network mode: $NETWORK_MODE"; return 1;; esac
-    if [[ $NETWORK_MODE == auto ]]; then
+    if [[ $NETWORK_MODE == auto && ${DRY_RUN:-0} == 1 ]]; then
+        NETWORK_MODE=china
+    elif [[ $NETWORK_MODE == auto ]]; then
         if curl -fsSI --connect-timeout 2 --max-time 4 https://github.com/ >/dev/null 2>&1; then
             NETWORK_MODE=official
         else
@@ -61,12 +63,49 @@ load_network_mode() {
 
 _github_candidates() {
     local url=$1 mirror
+    if [[ $url == https://rsproxy.cn/rustup/dist/* ]]; then
+        printf '%s\n' "$url" "https://static.rust-lang.org/rustup/dist/${url#https://rsproxy.cn/rustup/dist/}"
+        return 0
+    fi
     [[ $url == https://github.com/* ]] || { printf '%s\n' "$url"; return 0; }
     for mirror in ${GITHUB_MIRRORS:-}; do
         [[ $mirror == https://* ]] || continue
         printf '%s\n' "${mirror%/}/$url"
     done
     printf '%s\n' "$url"
+}
+
+run_with_source_fallback() {
+    local service=$1 rc=0
+    shift
+    local -a primary=() official=()
+    case $service in
+        npm)
+            primary=(NPM_CONFIG_REGISTRY="$NPM_REGISTRY")
+            official=(NPM_CONFIG_REGISTRY=https://registry.npmjs.org)
+            ;;
+        node)
+            primary=(MISE_NODE_MIRROR_URL="$MISE_NODE_MIRROR_URL")
+            official=(MISE_NODE_MIRROR_URL=https://nodejs.org/dist/)
+            ;;
+        rust)
+            primary=(RUSTUP_DIST_SERVER="$RUSTUP_DIST_SERVER" RUSTUP_UPDATE_ROOT="$RUSTUP_UPDATE_ROOT")
+            official=(RUSTUP_DIST_SERVER=https://static.rust-lang.org RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup)
+            ;;
+        *) die "unknown source fallback service: $service"; return 1 ;;
+    esac
+    # A source gets a bounded attempt; timeout sends TERM then KILL to its process group.
+    run timeout --kill-after=10 600 env "${primary[@]}" "$@" && return 0
+    rc=$?
+    [[ $NETWORK_MODE == china ]] || return "$rc"
+    log_warn "$service primary source failed (exit $rc); retrying official source"
+    run timeout --kill-after=10 900 env "${official[@]}" "$@"
+}
+
+npm_install_global() {
+    run_with_source_fallback npm "$DOTFILES_DATA_DIR/bin/mise" x node@24.8.0 -- \
+        npm install --global --prefix "$DOTFILES_DATA_DIR/npm" \
+        --fetch-retries=1 --fetch-timeout=30000 "$@"
 }
 
 cargo_run() {
@@ -111,8 +150,17 @@ network_preflight() {
     (( DRY_RUN )) && { log_info "dry-run: skipping network probe ($NETWORK_MODE)"; return 0; }
     command_exists curl || { die 'curl is required for network preflight'; return 1; }
     log_info "network mode: $NETWORK_MODE"
-    curl -fsSI --connect-timeout 3 --max-time 8 "$NPM_REGISTRY" >/dev/null ||
-        { die "network preflight failed for $NPM_REGISTRY; check proxy variables or use --network"; return 1; }
+    local module
+    for module in "${RESOLVED_MODULES[@]}"; do
+        case $module in
+            nrm|lsp|codex|claude)
+                if ! curl -fsSI --connect-timeout 3 --max-time 8 "$NPM_REGISTRY" >/dev/null; then
+                    log_warn 'npm preflight failed; installation will retry with its source fallback policy'
+                fi
+                break
+                ;;
+        esac
+    done
 }
 
 download_verified() {
@@ -129,7 +177,8 @@ download_verified() {
     mkdir -p -- "$(dirname -- "$destination")"
     while IFS= read -r candidate; do
         tmp=$(mktemp "${destination}.tmp.XXXXXX") || return 1
-        if curl -fL --retry 8 --retry-delay 2 --connect-timeout 30 --max-time 900 \
+        if curl -fL --retry 1 --retry-delay 1 --retry-max-time 180 --connect-timeout 10 --max-time 180 \
+            --speed-limit 1024 --speed-time 30 \
             --continue-at - --output "$tmp" "$candidate" &&
             printf '%s  %s\n' "$expected" "$tmp" | sha256sum --check --status; then
             chmod 0755 "$tmp"

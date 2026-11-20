@@ -129,9 +129,9 @@ docker exec dotfiles-manual-test sh -c \
 
 安装结束时，required 模块应全部为 `success`，并自动完成配置部署与 doctor。
 
-### 可选：验证清华 apt 镜像
+### 验证默认清华 apt 镜像
 
-Ubuntu 20.04 及之后版本可在安装时加 `--apt-mirror tuna`，脚本读取系统版本并保留现有仓库代号。也可以单独执行：
+Ubuntu 20.04 及之后版本安装/更新默认启用清华源，`--apt-mirror keep` 可保留原源。脚本读取系统版本并保留现有仓库代号。也可以单独执行：
 
 ```bash
 ./setup.sh apt-mirror tuna --yes --dry-run
@@ -142,7 +142,7 @@ Ubuntu 20.04 及之后版本可在安装时加 `--apt-mirror tuna`，脚本读�
 ./setup.sh apt-mirror restore --yes
 ```
 
-此选项只替换官方 archive/ports 地址，保留 security 和公司等自定义源。因此本测试镜像自带的内部源可能不会发生变化；这属于预期行为。恢复时如果检测到换源后的手动修改，会拒绝覆盖并提示检查相关文件。单独换源后可执行 `sudo apt-get update`；完整 install/update 流程会统一刷新索引。
+此选项替换官方及公司代理中的 Ubuntu 基础仓库地址，保留官方 security 和第三方仓库。恢复时如果检测到换源后的手动修改，会拒绝覆盖并提示检查相关文件。单独换源后可执行 `sudo apt-get update`；完整 install/update 流程会统一刷新索引。
 
 项目另提供仅在可丢弃 Docker 容器内执行的夹具测试，覆盖两种源格式、重复执行、恢复和手动修改保护。在宿主机运行：
 

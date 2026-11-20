@@ -7,6 +7,13 @@ export HOME=/tmp/dotfiles-apt-test XDG_CONFIG_HOME=/tmp/dotfiles-apt-test/.confi
 export XDG_DATA_HOME=/tmp/dotfiles-apt-test/.local/share XDG_STATE_HOME=/tmp/dotfiles-apt-test/.local/state
 export XDG_CACHE_HOME=/tmp/dotfiles-apt-test/.cache
 cd "$ROOT"
+plan=$(./setup.sh plan minimal --network official)
+[[ $plan == *'Apt mirror: tuna'* ]]
+plan=$(./setup.sh plan minimal --apt-mirror keep --network china)
+if [[ $plan == *'Apt mirror: tuna'* ]]; then
+    printf 'ERROR: keep did not disable default apt mirror\n' >&2
+    exit 1
+fi
 install -m 0644 tests/fixtures/ubuntu.list /etc/apt/sources.list.d/dotfiles-fixture.list
 install -m 0644 tests/fixtures/ubuntu.sources /etc/apt/sources.list.d/dotfiles-fixture.sources
 ./setup.sh apt-mirror tuna --yes --dry-run

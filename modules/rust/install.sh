@@ -11,6 +11,6 @@ else
     [[ $NETWORK_MODE == china ]] && url=https://rsproxy.cn/rustup/dist/x86_64-unknown-linux-gnu/rustup-init
     installer="$DOTFILES_CACHE_DIR/downloads/rustup-init"
     download_verified "$url" dda7234360b7f578ca8b0ddcb80145646fa61a67c1720a5abc7051b35c9fcb71 "$installer"
-    run timeout 900 env RUSTUP_DIST_SERVER="$RUSTUP_DIST_SERVER" RUSTUP_UPDATE_ROOT="$RUSTUP_UPDATE_ROOT" "$installer" -y --no-modify-path --profile minimal --default-toolchain "$toolchain" --component rustfmt,clippy
+    run_with_source_fallback rust "$installer" -y --no-modify-path --profile minimal --default-toolchain "$toolchain" --component rustfmt,clippy
 fi
-run timeout 600 "$rustup" component add rustfmt clippy rust-analyzer --toolchain "$toolchain"
+run_with_source_fallback rust "$rustup" component add rustfmt clippy rust-analyzer --toolchain "$toolchain"

@@ -1,5 +1,5 @@
 Types: deb
-URIs: http://archive.ubuntu.com/ubuntu/
+URIs: https://packages.example.org/repository/ubuntu-proxy/
 Suites: noble noble-updates noble-backports
 Components: main restricted universe multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg

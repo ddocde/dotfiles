@@ -18,9 +18,33 @@ validate_apt_mirror_platform() {
 }
 
 render_tuna_sources() {
-    # Replace only official archive URIs. Preserve security.ubuntu.com,
-    # suite names, Signed-By, third-party repositories and custom mirrors.
-    sed -E "s@https?://(([a-zA-Z0-9-]+\.)?archive\.ubuntu\.com/ubuntu|ports\.ubuntu\.com/ubuntu-ports)(/?)([[:space:]]|$)@${APT_MIRROR_URL}/\4@g" "$1"
+    # Official archive URLs, Ubuntu archive keys and base archive components
+    # identify Ubuntu mirrors, including company proxies. Third-party-only
+    # repositories are not redirected to an unrelated Ubuntu archive.
+    awk -v mirror="$APT_MIRROR_URL/" '
+        function flush(   i,base,security,line) {
+            base=0; security=0
+            for(i=1;i<=n;i++) {
+                if (lines[i] ~ /^Signed-By:.*ubuntu-archive-keyring/ ||
+                    lines[i] ~ /^Components:.*(universe|restricted|multiverse)/ ||
+                    lines[i] ~ /^URIs:.*(archive\.ubuntu\.com\/ubuntu|ports\.ubuntu\.com\/ubuntu-ports)/) base=1
+                if (lines[i] ~ /^URIs:.*security\.ubuntu\.com/) security=1
+            }
+            for(i=1;i<=n;i++) {
+                line=lines[i]
+                if(base && !security && line ~ /^URIs:/) line="URIs: " mirror
+                if(line ~ /^deb(-src)?[[:space:]]/ && line !~ /security\.ubuntu\.com/ &&
+                    (line ~ /(archive\.ubuntu\.com\/ubuntu|ports\.ubuntu\.com\/ubuntu-ports)/ ||
+                     line ~ /[[:space:]](universe|restricted|multiverse)([[:space:]]|$)/))
+                    sub(/https?:\/\/[^[:space:]]+/,mirror,line)
+                print line
+            }
+            n=0
+        }
+        /^[[:space:]]*$/ { flush(); print; next }
+        { lines[++n]=$0 }
+        END { flush() }
+    ' "$1"
 }
 
 configure_apt_mirror() {
@@ -80,5 +104,5 @@ configure_apt_mirror() {
         rm -f -- "$tmp"
         log_info "apt source switched: $file (backup: $backup)"
     done
-    ((${#files[@]})) || log_info 'no official archive URIs need switching; existing custom/security sources preserved'
+    ((${#files[@]})) || log_info 'Ubuntu mirrors already configured or no base archive detected; third-party/security sources preserved'
 }
