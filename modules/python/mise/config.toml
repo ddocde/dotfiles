@@ -1,0 +1,3 @@
+# Bootstrap-only configuration; keep deployment and installation separate.
+[tools]
+python = "3.13.7"

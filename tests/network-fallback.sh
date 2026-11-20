@@ -14,15 +14,16 @@ fixture=$(mktemp -d)
 trap 'rm -rf -- "$fixture"' EXIT
 export TEST_SOURCE_LOG="$fixture/attempts"
 timeout() { printf '%s\n' "$*" >> "$fixture/timeouts"; command timeout "$@"; }
-unset NPM_CONFIG_REGISTRY MISE_NODE_MIRROR_URL MISE_GO_DOWNLOAD_MIRROR RUSTUP_DIST_SERVER
+unset NPM_CONFIG_REGISTRY MISE_NODE_MIRROR_URL MISE_GO_DOWNLOAD_MIRROR RUSTUP_DIST_SERVER MISE_URL_REPLACEMENTS
 NETWORK_MODE=china
 NPM_REGISTRY=https://registry.npmmirror.com
 MISE_NODE_MIRROR_URL=https://npmmirror.com/mirrors/node/
 MISE_GO_DOWNLOAD_MIRROR=https://mirrors.nju.edu.cn/golang
+PYTHON_URL_REPLACEMENTS='{"https://github.com/":"https://ghfast.top/https://github.com/"}'
 RUSTUP_DIST_SERVER=https://rsproxy.cn
 RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
 [[ $(_github_candidates https://rsproxy.cn/rustup/archive/1.28.2/x86_64-unknown-linux-gnu/rustup-init) == *https://static.rust-lang.org/rustup/archive/1.28.2/x86_64-unknown-linux-gnu/rustup-init* ]]
-for service in npm node go rust; do
+for service in npm node go python rust; do
     : > "$TEST_SOURCE_LOG"
     run_with_source_fallback "$service" bash "$ROOT/tests/fixtures/source-attempt.sh" locked@1.2.3
     [[ $(wc -l < "$TEST_SOURCE_LOG") == 2 ]]

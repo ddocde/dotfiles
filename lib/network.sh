@@ -58,7 +58,21 @@ load_network_mode() {
         export http_proxy="$proxy_url" https_proxy="$proxy_url"
     fi
     NPM_CONFIG_USERCONFIG="$DOTFILES_CONFIG_DIR/npmrc"
+    PYTHON_URL_REPLACEMENTS='{}'
+    if [[ $NETWORK_MODE == china ]]; then
+        local first_mirror=${GITHUB_MIRRORS%% *} python_prefix
+        if [[ $first_mirror == https://* ]]; then
+            python_prefix="${first_mirror%/}/https://github.com/"
+            python_prefix=${python_prefix//\\/\\\\}
+            python_prefix=${python_prefix//\"/\\\"}
+            # This is JSON consumed by mise, not a shell command string.
+            # shellcheck disable=SC2089
+            printf -v PYTHON_URL_REPLACEMENTS '{"https://github.com/":"%s"}' "$python_prefix"
+        fi
+    fi
     export NETWORK_MODE NPM_REGISTRY NPM_CONFIG_USERCONFIG MISE_NODE_MIRROR_URL MISE_GO_DOWNLOAD_MIRROR
+    # shellcheck disable=SC2090
+    export PYTHON_URL_REPLACEMENTS
     export RUSTUP_DIST_SERVER RUSTUP_UPDATE_ROOT GOPROXY PIP_INDEX_URL GITHUB_MIRRORS
     export DOTFILES_VSCODE_APT_REPO DOTFILES_WEZTERM_APT_REPO
 }
@@ -105,6 +119,10 @@ run_with_source_fallback() {
         go)
             primary=(MISE_GO_DOWNLOAD_MIRROR="$MISE_GO_DOWNLOAD_MIRROR")
             official=(MISE_GO_DOWNLOAD_MIRROR=https://dl.google.com/go)
+            ;;
+        python)
+            primary=(MISE_URL_REPLACEMENTS="$PYTHON_URL_REPLACEMENTS")
+            official=(MISE_URL_REPLACEMENTS='{}')
             ;;
         rust)
             primary=(RUSTUP_DIST_SERVER="$RUSTUP_DIST_SERVER" RUSTUP_UPDATE_ROOT="$RUSTUP_UPDATE_ROOT")

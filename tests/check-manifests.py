@@ -12,6 +12,13 @@ assert f'go = "{go_version}"' in go_config
 assert f'version = "{go_version}"' in go_lock
 assert re.search(r'checksum = "sha256:[0-9a-f]{64}"', go_lock)
 assert f'https://dl.google.com/go/go{go_version}.linux-amd64.tar.gz' in go_lock
+python_version = re.search(r'^python = "([^"]+)"', (root / 'modules/mise/config/config.toml').read_text(), re.M)[1]
+python_config = (root / 'modules/python/mise/config.toml').read_text()
+python_lock = (root / 'modules/python/mise/mise.lock').read_text()
+assert f'python = "{python_version}"' in python_config
+assert f'version = "{python_version}"' in python_lock
+assert re.search(r'checksum = "sha256:[0-9a-f]{64}"', python_lock)
+assert f'cpython-{python_version}+' in python_lock
 for lock in (root / 'modules').glob('*/artifacts.lock'):
     seen = set()
     for line in lock.read_text().splitlines():

@@ -1,0 +1,11 @@
+# SHA256 from the official python-build-standalone 20250918 release's SHA256SUMS.
+lockfile_version = 2
+
+[[tools.python]]
+version = "3.13.7"
+backend = "core:python"
+specifiers = ["3.13.7"]
+
+[tools.python."platforms.linux-x64"]
+checksum = "sha256:888fb7e192caafdb33e028f865b7da68dce5e924cfe58fcef96323e175a70e3e"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20250918/cpython-3.13.7+20250918-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
