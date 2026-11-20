@@ -32,7 +32,7 @@ run_module_action() {
     fi
     if (( rc == 0 )); then
         MODULE_RESULT[$module]=success; module_event "$module" success
-        if [[ $action == install ]]; then record_installed "$module" || return $?; fi
+        if [[ $action == install || $action == update ]]; then record_installed "$module" || return $?; fi
         if [[ $action == uninstall ]]; then
             record_uninstalled "$module" || return $?
             case $module in mise|starship|zoxide|fzf)
