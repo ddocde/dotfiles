@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-run "$DOTFILES_DATA_DIR/bin/mise" uninstall node@24.8.0
+set -Eeuo pipefail
+uninstall_runtime node@24.8.0

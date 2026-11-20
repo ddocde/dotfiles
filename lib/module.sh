@@ -18,11 +18,13 @@ run_module_action() {
         done < "$DOTFILES_ROOT/modules/$module/depends.list"
     fi
     module_event "$module" start
+    if [[ $action == uninstall ]]; then deploy_module "$module" undeploy || rc=$?; fi
     if [[ $action == install || $action == update ]]; then install_locked_artifacts "$module" || rc=$?; fi
     if (( rc == 0 )) && [[ -x $script ]]; then
         if (( DRY_RUN )); then printf '[dry-run] module script %s\n' "$script"; else "$script" || rc=$?; fi
     fi
     if (( rc == 0 )) && [[ $action == deploy ]]; then deploy_module "$module" || rc=$?; fi
+    if (( rc == 0 && ! DRY_RUN )) && [[ $action == doctor ]]; then doctor_module "$module" || rc=$?; fi
     if (( rc == 0 && ! DRY_RUN )) && [[ $action == doctor && -f $DOTFILES_ROOT/modules/$module/command ]]; then
         local expected
         expected=$(<"$DOTFILES_ROOT/modules/$module/command")
@@ -30,11 +32,20 @@ run_module_action() {
     fi
     if (( rc == 0 )); then
         MODULE_RESULT[$module]=success; module_event "$module" success
-        [[ $action == install ]] && record_installed "$module"
-        [[ $action == uninstall ]] && record_uninstalled "$module"
+        if [[ $action == install ]]; then record_installed "$module" || return $?; fi
+        if [[ $action == uninstall ]]; then
+            record_uninstalled "$module" || return $?
+            case $module in mise|starship|zoxide|fzf)
+                run rm -f -- "$DOTFILES_CACHE_DIR/shell-init/$module.bash" "$DOTFILES_CACHE_DIR/shell-init/$module.zsh" || return $? ;;
+            esac
+        fi
         return 0
     fi
     MODULE_RESULT[$module]=failure; module_event "$module" failure; record_failure "$module" "$action:$rc"
+    if [[ $action == uninstall ]]; then
+        die "uninstall failed: $module (exit $rc); remaining modules preserved"
+        return 1
+    fi
     if [[ ${PROFILE_OPTIONAL[$module]:-0} == 1 ]]; then
         RUN_HAD_OPTIONAL_FAILURES=1
         MODULE_BLOCKED[$module]=1
@@ -50,9 +61,9 @@ run_modules() {
     if [[ $action == uninstall ]]; then
         local i
         for ((i=${#RESOLVED_MODULES[@]}-1; i>=0; i--)); do
-            module=${RESOLVED_MODULES[i]}; deploy_module "$module" undeploy || true; run_module_action uninstall "$module"
+            module=${RESOLVED_MODULES[i]}; run_module_action uninstall "$module" || return $?
         done
     else
-        for module in "${RESOLVED_MODULES[@]}"; do run_module_action "$action" "$module"; done
+        for module in "${RESOLVED_MODULES[@]}"; do run_module_action "$action" "$module" || return $?; done
     fi
 }

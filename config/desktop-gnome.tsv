@@ -1,0 +1,7 @@
+# schema<TAB>key<TAB>GVariant value; public preferences audited from current laptop
+org.gnome.desktop.interface	color-scheme	'default'
+org.gnome.desktop.interface	clock-show-seconds	false
+org.gnome.desktop.interface	clock-show-weekday	false
+org.gnome.desktop.peripherals.touchpad	tap-to-click	true
+org.gnome.desktop.wm.preferences	button-layout	':minimize,maximize,close'
+org.gnome.desktop.input-sources	xkb-options	[]

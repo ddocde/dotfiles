@@ -1,0 +1,4 @@
+# name|HTTPS URL|relative data path|revision|40-character commit|policy|schedule
+# policy: pinned, head, branch:main; schedule: manual or auto.
+# Modules may also declare git-repositories.list using the same format.
+# No private URLs, credentials or personal project clones belong here.

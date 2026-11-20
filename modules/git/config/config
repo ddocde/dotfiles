@@ -6,6 +6,11 @@
     autoSetupRemote = true
 [merge]
     conflictStyle = zdiff3
+[log]
+    date = iso
+[alias]
+    lg = log --graph --decorate --oneline --all
+    st = status --short --branch
 [core]
     excludesFile = ~/.config/git/ignore
 [include]

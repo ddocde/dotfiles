@@ -36,5 +36,5 @@ if ./setup.sh apt-mirror restore --yes; then
     exit 1
 fi
 grep -q '^# manual edit' /etc/apt/sources.list.d/dotfiles-fixture.list
-test ! -e "$XDG_STATE_HOME/dotfiles/run.lock"
+flock -n "$XDG_STATE_HOME/dotfiles/run.flock" true
 printf 'apt mirror apply/idempotency/restore/manual-edit protection: passed\n'

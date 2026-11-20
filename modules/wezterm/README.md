@@ -11,7 +11,7 @@
 | 三等分布局 | F20，或命令面板中的对应事件 |
 | 四等分布局 | F21，或命令面板中的对应事件 |
 
-模块依赖 Zsh 和 fonts。字体列表保留当前电脑的回退设置，并添加 apt 提供的 `Fira Code` 回退。`FiraCode Nerd Font` 不会自动安装；普通字体可正常显示文字，但 Nerd Font 专用图标的显示效果需要另行验证。
+模块依赖 Zsh 和 fonts。fonts 模块安装经上游 SHA256 校验的 FiraCode Nerd Font 3.4.0，并提供 apt 的 Fira Code 回退。doctor 检查字体匹配和配置解析；图形窗口的最终视觉效果仍需桌面会话核对。
 
 xdotter 将 `~/.config/wezterm/wezterm.lua` 链接到此模块的 `config/wezterm.lua`。当前电脑上的旧链接不会因为编辑仓库而切换。已有配置冲突时先运行 `./setup.sh module status wezterm --network official` 查看计划，再审阅和手动迁移。
 

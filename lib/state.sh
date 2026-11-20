@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-RUN_LOCK_DIR=''
-
 state_init() {
     (( DRY_RUN )) && return 0
     mkdir -p -- "$DOTFILES_STATE_DIR" "$DOTFILES_CONFIG_DIR" "$DOTFILES_CACHE_DIR" "$DOTFILES_DATA_DIR/bin"
@@ -10,34 +8,21 @@ state_init() {
 
 acquire_run_lock() {
     (( DRY_RUN )) && return 0
-    local lock="$DOTFILES_STATE_DIR/run.lock" owner=''
-    if ! mkdir -- "$lock" 2>/dev/null; then
-        [[ -r $lock/pid ]] && IFS= read -r owner < "$lock/pid"
-        if [[ $owner =~ ^[0-9]+$ ]] && kill -0 "$owner" 2>/dev/null; then
-            die "another dotfiles operation is running (pid $owner)"
-            return 1
-        fi
-        log_warn "removing stale dotfiles run lock${owner:+ (pid $owner)}"
-        rm -f -- "$lock/pid" || return 1
-        rmdir -- "$lock" 2>/dev/null || { die "cannot recover run lock: $lock"; return 1; }
-        mkdir -- "$lock" || return 1
-    fi
-    printf '%s\n' "$$" > "$lock/pid" || {
-        rm -f -- "$lock/pid"
-        rmdir -- "$lock" 2>/dev/null || true
+    command -v flock >/dev/null 2>&1 || { log_error 'flock (util-linux) is required'; return 1; }
+    # Keep this inode: deleting a flock file creates a second independent lock.
+    exec {DOTFILES_LOCK_FD}>>"$DOTFILES_STATE_DIR/run.flock"
+    if ! flock -n "$DOTFILES_LOCK_FD"; then
+        exec {DOTFILES_LOCK_FD}>&-
+        die 'another dotfiles operation is running'
         return 1
-    }
-    RUN_LOCK_DIR=$lock
+    fi
 }
 
 release_run_lock() {
-    [[ -n ${RUN_LOCK_DIR:-} && -d $RUN_LOCK_DIR ]] || return 0
-    local owner=''
-    [[ -r $RUN_LOCK_DIR/pid ]] && IFS= read -r owner < "$RUN_LOCK_DIR/pid"
-    [[ $owner == "$$" ]] || return 0
-    rm -f -- "$RUN_LOCK_DIR/pid"
-    rmdir -- "$RUN_LOCK_DIR" 2>/dev/null || true
-    RUN_LOCK_DIR=''
+    [[ -n ${DOTFILES_LOCK_FD:-} ]] || return 0
+    flock -u "$DOTFILES_LOCK_FD"
+    exec {DOTFILES_LOCK_FD}>&-
+    unset DOTFILES_LOCK_FD
 }
 
 atomic_append_unique() {
@@ -56,6 +41,12 @@ record_uninstalled() {
     tmp=$(mktemp "$DOTFILES_STATE_DIR/.state.XXXXXX") || return 1
     awk -v module="$module" '$0 != module' "$file" > "$tmp"
     mv -f -- "$tmp" "$file"
+    file="$DOTFILES_STATE_DIR/installed-versions.tsv"
+    if [[ -f $file ]]; then
+        tmp=$(mktemp "$DOTFILES_STATE_DIR/.versions.XXXXXX") || return 1
+        awk -F '\t' -v module="$module" '$1 != module && index($1, module "/") != 1' "$file" > "$tmp" || return 1
+        mv -f -- "$tmp" "$file" || return 1
+    fi
 }
 record_version() {
     local key=$1 value=$2 file="$DOTFILES_STATE_DIR/installed-versions.tsv" tmp

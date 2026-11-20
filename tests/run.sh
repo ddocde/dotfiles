@@ -3,6 +3,7 @@ set -Eeuo pipefail
 ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 pass=0
 fail=0
+bash "$ROOT/scripts/check-shell.sh"
 
 ok() { printf 'ok - %s\n' "$1"; pass=$((pass + 1)); }
 not_ok() { printf 'not ok - %s\n' "$1"; fail=$((fail + 1)); }
@@ -144,30 +145,28 @@ else
 fi
 
 lock_fixture=$(mktemp -d)
-mkdir "$lock_fixture/run.lock"
-printf '%s\n' "$$" > "$lock_fixture/run.lock/pid"
 if DRY_RUN=0 DOTFILES_STATE_DIR="$lock_fixture" bash -c '
     source "$1/lib/logging.sh"
     source "$1/lib/state.sh"
     acquire_run_lock
-' _ "$ROOT" >/dev/null 2>&1; then
-    not_ok 'concurrent mutation lock rejects an active run'
-else
-    ok 'concurrent mutation lock rejects an active run'
-fi
-printf '%s\n' 99999999 > "$lock_fixture/run.lock/pid"
-if DRY_RUN=0 DOTFILES_STATE_DIR="$lock_fixture" bash -c '
-    source "$1/lib/logging.sh"
-    source "$1/lib/state.sh"
-    acquire_run_lock
+    if flock -n "$DOTFILES_STATE_DIR/run.flock" true; then exit 1; fi
     release_run_lock
-' _ "$ROOT" >/dev/null 2>&1 &&
-    [[ ! -e $lock_fixture/run.lock ]]; then
-    ok 'stale mutation locks are recovered safely'
+    flock -n "$DOTFILES_STATE_DIR/run.flock" true
+' _ "$ROOT"; then
+    ok 'kernel lock rejects concurrent operations and releases on completion'
 else
-    not_ok 'stale mutation locks are recovered safely'
+    not_ok 'kernel lock rejects concurrent operations and releases on completion'
 fi
-
+if DRY_RUN=0 DOTFILES_STATE_DIR="$lock_fixture" bash -c '
+    source "$1/lib/logging.sh"
+    source "$1/lib/state.sh"
+    acquire_run_lock
+    exit 0
+' _ "$ROOT" && flock -n "$lock_fixture/run.flock" true; then
+    ok 'kernel lock releases automatically after process exit'
+else
+    not_ok 'kernel lock releases automatically after process exit'
+fi
 mock_cache=$(mktemp -d)
 # shellcheck disable=SC2031
 PATH="$ROOT/tests/mocks:$PATH" XDG_CACHE_HOME="$mock_cache" "$ROOT/scripts/generate-shell-init.sh" mise
@@ -269,5 +268,10 @@ else
     ok 'unsafe command patterns are absent'
 fi
 
+for suite in lifecycle repos-desktop apt-recovery runtime-ownership; do
+    if bash "$ROOT/tests/$suite.sh" >/dev/null 2>&1; then ok "$suite integration"; else not_ok "$suite integration"; fi
+done
+if python3 "$ROOT/tests/package-ranges.py" >/dev/null 2>&1; then ok 'verified HTTP range downloads'; else not_ok 'verified HTTP range downloads'; fi
+if python3 "$ROOT/tests/check-manifests.py" >/dev/null 2>&1; then ok 'all artifact locks and profiles'; else not_ok 'all artifact locks and profiles'; fi
 printf '%s passed, %s failed\n' "$pass" "$fail"
 (( fail == 0 ))

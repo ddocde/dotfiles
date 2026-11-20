@@ -11,6 +11,7 @@ resolve_dependencies() {
 
 _visit_module() {
     local module=$1 dep line file="$DOTFILES_ROOT/modules/$1/depends.list"
+    [[ $module =~ ^[a-z0-9][a-z0-9-]*$ ]] || { die "invalid module name: $module"; return 1; }
     case ${_DEP_STATE[$module]:-} in done) return;; visiting) die "module dependency cycle at: $module"; return 1;; esac
     [[ -d $DOTFILES_ROOT/modules/$module ]] || { die "missing module dependency: $module"; return 1; }
     _DEP_STATE[$module]=visiting

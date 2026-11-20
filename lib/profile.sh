@@ -12,6 +12,7 @@ resolve_profile() {
 
 _read_profile() {
     local name=$1 file="$DOTFILES_ROOT/profiles/$1.list" raw module optional
+    [[ $name =~ ^[a-z0-9][a-z0-9-]*$ ]] || { die "invalid profile name: $name"; return 1; }
     [[ -f $file ]] || { die "unknown profile: $name"; return 1; }
     [[ -z ${_PROFILE_STACK[$name]:-} ]] || { die "profile include cycle at: $name"; return 1; }
     _PROFILE_STACK[$name]=1
@@ -25,19 +26,25 @@ _read_profile() {
         [[ -d $DOTFILES_ROOT/modules/$module ]] || { die "profile references missing module: $module"; return 1; }
         if [[ -z ${_PROFILE_SEEN[$module]:-} ]]; then
             PROFILE_MODULES+=("$module"); _PROFILE_SEEN[$module]=1
+            PROFILE_OPTIONAL[$module]=$optional
+        elif (( ! optional )); then
+            PROFILE_OPTIONAL[$module]=0
         fi
-        if (( optional )); then PROFILE_OPTIONAL[$module]=1; fi
     done < "$file"
     unset '_PROFILE_STACK[$name]'
 }
 
 apply_module_overrides() {
     local item
-    for item in "${DISABLED_MODULES[@]}"; do _PROFILE_SEEN[$item]=disabled; done
+    for item in "${DISABLED_MODULES[@]}"; do
+        [[ -d $DOTFILES_ROOT/modules/$item ]] || { die "unknown disabled module: $item"; return 1; }
+        _PROFILE_SEEN[$item]=disabled
+    done
     local -a kept=()
     for item in "${PROFILE_MODULES[@]}"; do [[ ${_PROFILE_SEEN[$item]} != disabled ]] && kept+=("$item"); done
     PROFILE_MODULES=("${kept[@]}")
     for item in "${ENABLED_MODULES[@]}"; do
+        PROFILE_OPTIONAL[$item]=0
         [[ -d $DOTFILES_ROOT/modules/$item ]] || { die "unknown enabled module: $item"; return 1; }
         [[ ${_PROFILE_SEEN[$item]:-} == 1 ]] || { PROFILE_MODULES+=("$item"); _PROFILE_SEEN[$item]=1; }
     done

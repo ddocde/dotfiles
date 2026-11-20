@@ -1,5 +1,12 @@
 # dotfiles managed entry point
 [[ $- == *i* ]] || return
+HISTCONTROL=ignoreboth
+HISTSIZE=1000
+HISTFILESIZE=2000
+shopt -s histappend checkwinsize
+if ! shopt -oq posix && [[ -r /usr/share/bash-completion/bash_completion ]]; then
+    . /usr/share/bash-completion/bash_completion
+fi
 for file in env.sh functions.sh aliases.sh; do
     [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file" ]] && . "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file"
 done

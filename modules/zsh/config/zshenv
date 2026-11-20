@@ -1,0 +1,4 @@
+# Only environment and PATH, including non-interactive Zsh.
+if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shell/env.sh" ]]; then
+    source "${XDG_CONFIG_HOME:-$HOME/.config}/shell/env.sh"
+fi

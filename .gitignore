@@ -5,3 +5,10 @@
 config/local.env
 config/network.env
 tests/tmp/
+**/local.sh
+**/config.local
+**/network.env
+**/*.secret
+**/.env
+__pycache__/
+*.log

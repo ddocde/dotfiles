@@ -2,7 +2,8 @@ dotfiles
 Copyright (c) 2026 dotfiles contributors
 
 The architecture was informed by CNCSMonster/dotfiles. The WezTerm config
-was adapted from the local configuration based on that repository, under
+and selected shell interaction preferences
+were adapted from the local configuration based on that repository, under
 the MIT license in licenses/CNCSMonster-dotfiles-MIT.txt. Git history was
 not copied. Phase-1 audit documents are retained in docs/upstream-analysis/.
 

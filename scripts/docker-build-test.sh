@@ -5,18 +5,13 @@ image=dotfiles-test:local
 docker build --file "$ROOT/tests/docker/Dockerfile" --tag "$image" "$ROOT"
 cat <<EOF
 Static and unit verification passed during build.
-Run the real install twice in one approved disposable container:
+Run the full lifecycle in one approved disposable container (read-only source):
 docker run --name dotfiles-test-workstation -it --network host \
   --env HTTP_PROXY --env HTTPS_PROXY --env ALL_PROXY \
-  --env http_proxy --env https_proxy --env all_proxy "$image" bash -lc '
-  test_home=\$(mktemp -d)
-  export HOME="\$test_home" XDG_CONFIG_HOME="\$test_home/.config"
-  export XDG_DATA_HOME="\$test_home/.local/share" XDG_STATE_HOME="\$test_home/.local/state"
-  export XDG_CACHE_HOME="\$test_home/.cache"
-  ./setup.sh install workstation --yes --network china
-  ./setup.sh install workstation --yes --network china
-  ./setup.sh doctor workstation --yes --network china
-'
+  --env http_proxy --env https_proxy --env all_proxy \
+  --env DOTFILES_DOCKER_TEST=1 \
+  --mount 'type=bind,src=$ROOT,dst=/opt/dotfiles,readonly' \
+  "$image" bash tests/workstation-docker.sh
 
 The named container remains available after the command finishes:
   docker ps -a --filter name=dotfiles-test-workstation

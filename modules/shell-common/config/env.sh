@@ -8,6 +8,7 @@ export XDG_CONFIG_HOME XDG_DATA_HOME XDG_STATE_HOME XDG_CACHE_HOME
 path_prepend() {
     case ":$PATH:" in *":$1:"*) ;; *) PATH="$1${PATH:+:$PATH}";; esac
 }
+path_prepend "${MISE_DATA_DIR:-$XDG_DATA_HOME/mise}/shims"
 path_prepend "$XDG_DATA_HOME/dotfiles/npm/bin"
 path_prepend "$XDG_DATA_HOME/dotfiles/bin"
 path_prepend "$HOME/.cargo/bin"

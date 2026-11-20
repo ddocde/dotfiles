@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -Eeuo pipefail
 if npm_global_version_matches nrm 2.0.1; then
     log_debug 'nrm already matches locked version 2.0.1'
 else

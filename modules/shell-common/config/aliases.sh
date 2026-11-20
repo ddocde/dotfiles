@@ -6,3 +6,9 @@ else
     alias la='ls -A'
 fi
 alias gs='git status --short --branch'
+alias l='la'
+alias py='python3'
+alias cls='clear'
+if command -v clang++ >/dev/null 2>&1; then
+    alias mcpp='clang++ -std=c++20 -Wall -Werror'
+fi

@@ -1,12 +1,27 @@
 # dotfiles managed entry point
 [[ -o interactive ]] || return
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
+mkdir -p -- "${HISTFILE:h}"
+HISTSIZE=1000
+SAVEHIST=1000
+setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
+bindkey -e
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^O' edit-command-line
+bindkey -s '^Y' 'yazi^M'
+WORDCHARS=${WORDCHARS//[\/]}
 for file in env.sh functions.sh aliases.sh; do
     [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file" ]] && source "${XDG_CONFIG_HOME:-$HOME/.config}/shell/$file"
 done
 local plugin_root="${XDG_DATA_HOME:-$HOME/.local/share}/dotfiles/zsh-plugins"
 [[ -d "$plugin_root/zsh-completions/src" ]] && fpath=("$plugin_root/zsh-completions/src" $fpath)
 autoload -Uz compinit
+autoload -Uz compaudit
 if [[ -z $(compaudit 2>/dev/null) ]]; then compinit -d "${ZDOTDIR:-$HOME}/.zcompdump"; else print -u2 'dotfiles: insecure completion paths; run compaudit'; fi
+zstyle ':completion:*' special-dirs true
+zstyle ':completion:*' file-patterns '*(-/):directories *:all-files'
+zstyle ':fzf-tab:complete:*' fzf-bindings 'ctrl-s:toggle' 'ctrl-a:toggle-all'
 dotfiles_source_cache mise zsh
 dotfiles_source_cache starship zsh
 dotfiles_source_cache zoxide zsh

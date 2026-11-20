@@ -15,3 +15,13 @@ detect_platform() {
 }
 
 is_noninteractive() { [[ ! -t 0 || ! -t 1 ]]; }
+
+validate_install_platform() {
+    command_exists apt-get || { die 'apt-based Linux is required for this tool set'; return 1; }
+    [[ $DOTFILES_OS == linux && $DOTFILES_ARCH == x86_64 ]] || {
+        die 'full installation currently requires Linux x86_64; see support matrix'; return 1;
+    }
+    [[ $XDG_CONFIG_HOME == "$HOME/.config" && $XDG_DATA_HOME == "$HOME/.local/share" ]] || {
+        die 'xdotter 0.5.2 manifests require standard XDG config/data paths under HOME; use an isolated HOME instead'; return 1;
+    }
+}

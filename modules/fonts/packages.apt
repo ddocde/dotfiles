@@ -1,4 +1,6 @@
 fonts-firacode
+fontconfig
+unzip
 fonts-dejavu-core
 fonts-noto-core
 fonts-noto-cjk
