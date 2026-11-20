@@ -158,10 +158,18 @@ npm_install_checked() {
 }
 
 npm_native_prefetch() {
-    local info url checksum version package archive headers size
+    local info url checksum version package archive headers size root_package binary
     info=$("$DOTFILES_DATA_DIR/bin/mise" x node@24.8.0 -- node "$DOTFILES_ROOT/scripts/npm-native-info.cjs" "$1") || return 1
     IFS='|' read -r url checksum version package <<< "$info"
     [[ $checksum =~ ^[0-9a-f]{128}$ && $version =~ ^[a-zA-Z0-9._+-]+$ ]] || return 1
+    root_package=${1%@*}
+    case $root_package in @openai/codex) binary=codex ;; @anthropic-ai/claude-code) binary=claude ;; *) return 1;; esac
+    if { npm_global_version_matches "$root_package/node_modules/$package" "$version" ||
+         npm_global_version_matches "$package" "$version"; } &&
+        "$DOTFILES_DATA_DIR/bin/mise" x node@24.8.0 -- "$DOTFILES_DATA_DIR/npm/bin/$binary" --version >/dev/null 2>&1; then
+        log_debug 'native npm package already matches registry metadata and is executable'
+        return 0
+    fi
     archive="$DOTFILES_CACHE_DIR/downloads/npm-${package//\//_}-$version.tgz"
     if [[ ! -f $archive ]] || ! printf '%s  %s\n' "$checksum" "$archive" | sha512sum --check --status; then
         mkdir -p "$DOTFILES_CACHE_DIR/downloads" || return 1
