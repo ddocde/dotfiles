@@ -268,7 +268,7 @@ else
     ok 'unsafe command patterns are absent'
 fi
 
-for suite in lifecycle repos-desktop apt-recovery runtime-ownership; do
+for suite in lifecycle repos-desktop apt-recovery runtime-ownership npm-cancellation; do
     if bash "$ROOT/tests/$suite.sh" >/dev/null 2>&1; then ok "$suite integration"; else not_ok "$suite integration"; fi
 done
 if python3 "$ROOT/tests/package-ranges.py" >/dev/null 2>&1; then ok 'verified HTTP range downloads'; else not_ok 'verified HTTP range downloads'; fi

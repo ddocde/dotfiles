@@ -8,7 +8,8 @@ for library in logging common platform network profile dependency state runtime 
 done
 export -f log_info log_warn log_error log_debug run die command_exists npm_global_version_matches
 export -f _github_candidates download_verified cargo_run git_checkout_verified record_version atomic_append_unique
-export -f run_with_source_fallback npm_install_global
+export -f run_with_source_fallback npm_install_global npm_install_checked
+export -f npm_native_prefetch download_package_verified download_ranges_verified
 export -f repo_revision
 export -f runtime_owned record_owned_runtime uninstall_runtime
 
