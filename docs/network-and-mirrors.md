@@ -31,13 +31,19 @@ VS Code 可先从官方 CDN 预取，WezTerm 可先从 Release 预取；两者�
 
 ## npm 与运行时
 
-中国模式 npm/Node/Rust 首次尝试最多 600 秒，失败后官方最多 900 秒，超时允许 10 秒退出后杀掉残余进程。npm 请求超时 30 秒、fetch 重试 1 次。两个源均失败仍非零；固定版本、独立 npm prefix、rustup-init 校验和 AI latest 规则不变。官方回退只改变本次命令环境，不永久修改 nrm 选择。
+中国模式普通 npm/Node/Go/Rust 首次尝试最多 600 秒，失败后官方最多 900 秒，超时允许 10 秒退出后杀掉残余进程。npm 请求超时 30 秒、fetch 重试 1 次。两个源均失败仍非零；固定版本、独立 npm prefix、rustup-init 校验和 AI latest 规则不变。官方回退只改变本次命令环境，不修改用户的日常 registry。
 
 AI CLI 的 `latest` 包是传输预算例外：镜像最多 180 秒，官方最多 1800 秒；official 模式直接给 1800 秒。原生平台包可能超过 100 MiB。npm 安装后立即执行 CLI 的 `--version`；即使 npm 返回 0，原生依赖缺失也判定失败并进入官方回退，不能等到最后 doctor 才发现。两个源均不可用时仍失败，不记录为安装成功。
 
 官方尝试会先读取当前 latest 的平台依赖与 SHA512 integrity，分段预取后校验并导入 npm 缓存，再执行 npm install latest。8–100 MiB 使用四段，100 MiB 以上使用十六段；不支持 Range 或预取失败时仍由 npm 正常下载。npm 的完整性校验和 CLI 可执行检查保留。超时取消先结束旧尝试；重试前只清理项目独立 prefix 内该 AI 包的 npm rename 暂存目录，避免 ENOTEMPTY，不清理用户全局 npm 目录或 .npmrc。
 
-只有选择 npm 工具时才预检 npm；探测失败只警告，由实际安装回退。minimal 不依赖 npm 联网。Python/Go 运行时仍依赖 mise 自身行为；PyPI/GOPROXY 配置主要加速包/模块，不代表运行时有独立 URL 回退。
+只有选择 npm 工具时才预检 npm；探测失败只警告，由实际安装回退。minimal 不依赖 npm 联网。Go 1.25.1 使用南大镜像与官方回退，bootstrap 专用 mise 配置和锁文件保存在缓存目录，官方 SHA256 固定在 modules/go/mise/mise.lock；始终启用校验，不依赖镜像提供 checksum 文件。使用的是 mise 的 [go.download_mirror](https://mise.jdx.dev/configuration/settings.html#go-download-mirror)，并在锁定 mise 2026.9.10 中实测。
+
+Rustup 引导器固定为 1.28.2 的 archive URL 与 SHA256，避免未版本化地址更新后与旧校验和冲突；Rust 工具链仍固定 1.89.0。
+
+Python 3.13.7 固定使用 python-build-standalone 20250918 的 Linux x86_64 预编译包，SHA256 取自其[官方 SHA256SUMS](https://github.com/astral-sh/python-build-standalone/releases/download/20250918/SHA256SUMS)。bootstrap 配置/锁与 Go 一样独立保存在缓存，禁止隐式 pyenv 克隆/源码编译。中国模式通过 mise 的 [URL replacements](https://mise.jdx.dev/url-replacements.html) 使用第一个 GitHub 镜像，失败后恢复官方 URL；校验和始终来自仓库锁文件，不从镜像重新生成。PyPI/GOPROXY 主要加速包/模块，与运行时下载分开。
+
+nrm 安装时不执行 nrm use：nrm 2 会直接写 HOME/.npmrc，忽略 NPM_CONFIG_USERCONFIG。安装器改用 npm config --userconfig，仅配置项目自己的 npmrc；用户原有 scope/token 文件保持不变。用户日常手动执行 nrm use 属于其自行选择的全局 registry 切换。
 
 ## 本机覆盖
 

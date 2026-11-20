@@ -15,7 +15,7 @@
 ## 1. 准备仓库
 
 ```bash
-git clone git@github.com:ddocde/dotfiles.git
+git clone https://github.com/ddocde/dotfiles.git
 cd dotfiles
 git switch main
 git pull --ff-only
@@ -289,6 +289,16 @@ docker run --name dotfiles-lifecycle-test --network host \
 ```
 
 脚本执行安装、重复安装、doctor、卸载、重装、doctor 与交互 Shell 检查。复用镜像内既有软件或缓存时，应在记录中注明，不能视为全新联网下载验证。接管的 Node/Go/Python、Rust 工具链、apt 包和下载缓存会保留。
+
+要单独验证首次引导，在保留的运行中容器执行：
+
+```bash
+docker exec --env DOTFILES_DOCKER_TEST=1 \
+  --env DOTFILES_FRESH_HOME=/home/tester/dotfiles-fresh-verify \
+  dotfiles-manual-test bash -lc 'cd /opt/dotfiles; bash tests/fresh-home-docker.sh'
+```
+
+目标 HOME 必须不存在；脚本只复制已下载的归档/npm/Rust 缓存，不复制配置、安装状态或运行时。缓存可用时复用缓存，否则联网下载。`tests/npm-config-docker.sh` 在专用验收 HOME 验证私有 .npmrc 内容不变；不会读取宿主机 HOME。
 
 插件更新可先用 `./setup.sh repos plan` 预览，再 `repos update --yes`；用 `repos rollback --repo fzf-tab --yes` 验证离线回滚。有本地修改时两者都应拒绝。真实用户定时器和 GNOME 设置需要独立会话验证，不能用本指南的 Docker 结果代替。
 

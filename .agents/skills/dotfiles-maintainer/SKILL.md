@@ -17,6 +17,9 @@ description: 维护 ddocde/dotfiles 的 Shell 安装脚本、Profile、个人配
 - Ubuntu 默认清华 apt 镜像使用系统文件备份恢复，不是 HOME 下的符号链接。保留签名校验，第三方软件仓库不能指向 Ubuntu 镜像。
 - 工具默认按锁定版本同步；Codex/Claude 为 latest 例外。`repos` 只管理清单内克隆，包含插件与通用仓库；遵循 pinned/head/branch 策略和 manual/auto 选择。更新保留一个离线回滚点，脏仓库必须停下，不使用 reset/force 清除修改。项目自身由用户授权后 Git pull/push。
 - Node/Go/Python 接管的运行时卸载时保留，只移除 owned-runtimes.list 记录的新装版本。不要用测试缓存复用结果冒充全新联网安装。
+- 新机路径用 tests/fresh-home-docker.sh 单独验证：可复用归档缓存，不复制运行时或配置。rustup-init 必须使用版本化 archive URL 和对应 SHA256；Go/Python 引导锁文件与运行时版本保持一致，不关闭校验，不隐式回退源码编译。
+- nrm 2 不遵守 NPM_CONFIG_USERCONFIG，安装器禁止调用 nrm use 改用户 registry；用 npm config --userconfig 配置独立文件，并验证用户 .npmrc 字节不变。
+- npm 返回 0 不代表 AI CLI 可用，必须在同一源尝试内运行命令检查；超时后结束全部旧进程再回退，不能并发写同一 prefix。
 - 运行锁使用 flock，持久锁文件不能删除。卸载时先撤销链接，失败不得继续删除工具或记录成功。只清理模块明确拥有的路径；apt 包和用户数据按文档保留。
 - doctor 检查系统实际情况、链接、锁定工具和缓存，不能把状态日志当成成功证据。缺失时给出可执行的 module install/update/deploy 建议。
 

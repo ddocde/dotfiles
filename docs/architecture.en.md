@@ -7,3 +7,5 @@
 Required failures stop immediately. Optional failures continue independent work, remain blocked in later phases, cause dependent modules to be skipped, and make the overall command fail after recording the run.
 
 `status` is a read-only deployment preview. Mutating and state-recording commands acquire an atomic per-user lock under the XDG state directory; the kernel releases locks when the owning process exits; keep the lock inode in place.
+
+Each runtime owns its mise conf.d pin; shared mise settings do not request uninstalled runtimes. Single-module uninstall never expands to prerequisites. Before removal, the graph of recorded installed modules conservatively protects external dependents. Doctor still checks the actual system rather than trusting those records.

@@ -56,12 +56,14 @@ wezterm
 
 交互式运行未指定 Profile 时默认使用 `workstation`。脚本、CI 或其他非交互场景必须显式指定 Profile，并附带 `--yes`。
 
+完整安装当前以 Ubuntu 24.04 x86_64 为验收目标；Termux 清单保留供后续适配，当前入口不支持其完整安装。详见[支持范围](docs/support-matrix.md)。
+
 ## 安装
 
 先查看计划；这一步不会修改系统：
 
 ```bash
-git clone git@github.com:ddocde/dotfiles.git dotfiles
+git clone https://github.com/ddocde/dotfiles.git dotfiles
 cd dotfiles
 
 ./setup.sh plan workstation --network china
@@ -115,6 +117,9 @@ Ubuntu 20.04 及之后版本安装/更新时默认启用清华 apt 镜像（自�
 ./setup.sh module install zsh --yes
 ./setup.sh module deploy zsh --yes
 ./setup.sh module doctor zsh --yes
+
+# 只卸载指定模块；仍被其他已装模块依赖时会拒绝
+./setup.sh module uninstall go --yes
 ```
 
 插件仓库也可以更新，并可开启每周后台更新：
@@ -187,6 +192,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 
 - xdotter 发现目标文件已存在时默认拒绝覆盖；请先审阅并手动移动该文件，再重新部署。
 - `uninstall` 只撤销链接并清理模块自己创建的文件；apt 包默认保留，且项目绝不自动运行 `apt autoremove`。
+- 单模块卸载不会自动卸载其依赖；若其他已装模块仍需要所选模块，操作会在撤销配置前拒绝。
 - 已有 Node/Go/Python 运行时会被接管并保留；本项目新装的版本才在卸载时移除。Rust 工具链和下载缓存保留。
 - 状态、失败记录和安装版本保存在 XDG 状态目录，供排错使用；`doctor` 始终以实际系统为准。
 - 会修改状态的命令使用每用户运行锁，拒绝同一个状态目录上的并发安装。

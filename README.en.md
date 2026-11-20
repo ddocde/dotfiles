@@ -56,12 +56,14 @@ wezterm
 
 Interactive use defaults to `workstation` when no profile is supplied. Scripts, CI, and other non-interactive runs must specify a profile and pass `--yes`.
 
+Full installation currently targets Ubuntu 24.04 x86_64. The Termux manifest remains for future adaptation; the current entry point does not support its full installation. See the [support matrix](docs/support-matrix.en.md).
+
 ## Install
 
 Start by reviewing the plan; it makes no changes:
 
 ```bash
-git clone git@github.com:ddocde/dotfiles.git dotfiles
+git clone https://github.com/ddocde/dotfiles.git dotfiles
 cd dotfiles
 
 ./setup.sh plan workstation --network china
@@ -114,6 +116,9 @@ Use dry-run to inspect a full installation safely:
 ./setup.sh module install zsh --yes
 ./setup.sh module deploy zsh --yes
 ./setup.sh module doctor zsh --yes
+
+# Remove only this module; refuse if another installed module still needs it
+./setup.sh module uninstall go --yes
 ```
 
 Managed plugins support upstream and optional weekly updates:
@@ -186,6 +191,7 @@ Create these files yourself when needed. The project reads them but never deploy
 
 - xdotter refuses to overwrite an existing target. Review and move it yourself, then deploy again.
 - `uninstall` removes links and files created by the module only. apt packages are retained by default, and this project never runs `apt autoremove` automatically.
+- Single-module removal does not remove prerequisites. Installed dependents block removal before configuration links are changed.
 - Adopted Node/Go/Python runtimes are retained; only versions installed by this project are removed. Rust toolchains and download caches remain.
 - State, failure records, and installed versions are diagnostic history. `doctor` always checks the real system.
 - Mutating commands use a per-user run lock and reject concurrent operations against the same state directory.

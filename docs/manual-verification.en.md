@@ -7,7 +7,7 @@ Use only the approved Ubuntu image. Never install the complete profile on your h
 ## Prepare and build
 
 ```bash
-git clone git@github.com:ddocde/dotfiles.git
+git clone https://github.com/ddocde/dotfiles.git
 cd dotfiles
 git switch main
 git pull --ff-only
@@ -96,6 +96,16 @@ docker run --name dotfiles-lifecycle-test --network host \
 It exercises install, repeat, doctor, uninstall, reinstall, and interactive shells. The separate `tests/apt-mirror-docker.sh` runs as root with DOTFILES_DOCKER_TEST=1 in the approved disposable image to test mirror backups, repeats, restore and manual-edit protection. Local test suites inject undeploy failures and modified plugin repositories. GNOME and systemd user scheduling tests are mocked, not real desktop acceptance.
 
 Record any reuse of existing system packages, runtime installations or caches; it is not a fresh network-download test. Adopted Node/Go/Python, Rust toolchains, apt packages and download caches remain installed. Preview repository updates with `./setup.sh repos plan`, then `repos update --yes`; check offline rollback with `repos rollback --repo fzf-tab --yes`. Local modifications must block both operations.
+
+For a separate first-bootstrap test in the retained running container:
+
+```bash
+docker exec --env DOTFILES_DOCKER_TEST=1 \
+  --env DOTFILES_FRESH_HOME=/home/tester/dotfiles-fresh-verify \
+  dotfiles-manual-test bash -lc 'cd /opt/dotfiles; bash tests/fresh-home-docker.sh'
+```
+
+The target HOME must not exist. Only archive/npm/Rust download caches are copied, never installed runtimes, configuration or state. Missing caches are downloaded normally. tests/npm-config-docker.sh checks byte-identical private npmrc preservation in its dedicated Docker acceptance HOME, without reading the host HOME.
 
 ## Inspect and clean up
 

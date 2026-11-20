@@ -56,6 +56,14 @@ VS Code may be prefetched from its official CDN, and WezTerm from its Release as
 
 Fixed Release archives without a size field allow 900 seconds per transfer instead of the 180-second bootstrap default. A size field also enables segmented downloading for archives such as the font package; they still require the repository-locked SHA256.
 
+Go 1.25.1 uses NJU's mirror with official fallback and a bootstrap-only mise config/lock copied into the cache. The upstream SHA256 is fixed in modules/go/mise/mise.lock; verification stays enabled even if a mirror lacks adjacent checksum files. This uses mise's [go.download_mirror](https://mise.jdx.dev/configuration/settings.html#go-download-mirror), tested with pinned mise 2026.9.10. Normal Go/Python attempts use the same 600/900-second budgets as ordinary npm/Node/Rust.
+
+Python 3.13.7 uses the pinned python-build-standalone 20250918 Linux x86_64 build, with SHA256 from its [official SHA256SUMS](https://github.com/astral-sh/python-build-standalone/releases/download/20250918/SHA256SUMS). Its bootstrap config/lock lives in the cache, with implicit pyenv cloning/source compilation disabled. China mode uses mise's [URL replacements](https://mise.jdx.dev/url-replacements.html) for the first GitHub mirror, then restores the official URL on failure. Checksums come from the repository lock, never regenerated from a mirror. PyPI/GOPROXY remain separate package/module mirrors.
+
+Rustup-init is pinned to the 1.28.2 archive URL and SHA256, avoiding changed content at an unversioned endpoint. The Rust toolchain remains 1.89.0.
+
+Installation no longer calls nrm use: nrm 2 writes HOME/.npmrc directly despite NPM_CONFIG_USERCONFIG. npm config --userconfig configures only the project's own npmrc, preserving the user's scopes/tokens. Manually invoking nrm use remains the user's explicit global registry choice.
+
 AI CLI `latest` packages use a separate budget: 180 seconds for the mirror, then 1800 seconds for npmjs; official mode starts with 1800 seconds. Native packages can exceed 100 MiB. Each npm attempt immediately checks the CLI with `--version`, because npm may return zero after an optional native download fails. A broken CLI triggers official fallback rather than being recorded as successful. Both sources failing still returns failure.
 
 Official attempts resolve the current native dependency and SHA512 integrity, prefetch it in ranges, verify it and import it into npm's cache before npm install latest. Transfers use four ranges below 100 MiB and sixteen at or above 100 MiB. Unsupported Range requests or failed prefetch fall back to npm's normal transfer. npm integrity checks and executable validation still apply. Cancellation ends the old attempt before retry; only npm AI-package rename staging directories inside the project's own prefix are cleaned, preventing ENOTEMPTY without clearing user global packages or .npmrc.
