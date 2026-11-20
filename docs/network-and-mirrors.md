@@ -1,41 +1,41 @@
-# Network and mirrors
+# 网络与镜像
 
-Priority is `--network`, `DOTFILES_NETWORK_MODE`, `~/.config/dotfiles/network.env`, then `china`. China mode uses npmmirror, RsProxy, `goproxy.cn`, Tsinghua PyPI, and verified GitHub mirror fallbacks; official mode uses npmjs, upstream Rust, `proxy.golang.org`, and PyPI. Auto mode probes GitHub with a short timeout.
+[English](network-and-mirrors.en.md)
 
-Proxy environment variables are inherited without persistence. Ubuntu install/update defaults to TUNA for base archives (`--apt-mirror keep` opts out). Third-party repository modules such as VS Code are separate; those modules verify the signing-key fingerprint first.
+优先级：--network > DOTFILES_NETWORK_MODE > ~/.config/dotfiles/network.env > china。
 
-Interactive Bash and Zsh sessions provide shared `proxy_on` and `proxy_off` helpers. `proxy_on` uses `DOTFILES_PROXY_URL` when set and otherwise defaults to `http://127.0.0.1:7897`; `DOTFILES_NO_PROXY` can replace the loopback-only bypass list. Machine- or company-specific values belong in `~/.config/shell/local.sh`, not in tracked files.
+china 默认 npmmirror、RsProxy、goproxy.cn、清华 PyPI 和 GitHub 镜像；official 使用官方源；auto 短超时探测 GitHub，dry-run 不探测并预览 china。这是固定顺序，不是吞吐测速。
 
-Downloads use temporary files, a 10-second connect timeout, a 180-second transfer timeout, one retry with a 180-second retry budget, and a 30-second low-speed limit of 1 KiB/s. Then the next endpoint is attempted. Curl retry budgeting may allow the last attempt to finish beyond the retry budget. GitHub Release assets and pinned Git repositories try the project-author-verified `ghfast.top` and `mirror.ghproxy.com` endpoints in China mode, then fall back to the official GitHub URL. SHA256 and commit locks are still checked after a mirror succeeds.
+继承大小写 HTTP_PROXY/HTTPS_PROXY/ALL_PROXY，不持久化代理。proxy_on/off 由 Bash/Zsh 共享，私有地址放 local.sh 或 network.env。
 
-apt uses eight retries and 30-second HTTP/HTTPS timeouts. Ubuntu 20+ defaults to TUNA during install/update, independently of `--network`; `--apt-mirror keep` retains existing sources. For a locally approved repository mirror, set `DOTFILES_VSCODE_APT_REPO` or `DOTFILES_WEZTERM_APT_REPO` in `~/.config/dotfiles/network.env`; never put credentials in those URLs.
+## apt
 
-## Ubuntu apt mirror
+Ubuntu 20+ install/update 默认清华源，--apt-mirror keep 保留当前源，独立于 --network。自动保留系统版本、代号、仓库组件、签名键。识别官方地址、Ubuntu archive key 或基础组件的 Ubuntu 仓库，包括公司镜像；第三方软件仓库仍使用各自地址。官方 security.ubuntu.com 保留。
 
 ```bash
-./setup.sh install workstation --yes --network china --apt-mirror tuna
-# Or switch sources separately, without installing tools:
 ./setup.sh apt-mirror tuna --yes
 ./setup.sh apt-mirror restore --yes
 ```
 
-The implementation reads `/etc/os-release`, requires Ubuntu 20.04 or newer, and retains existing release codenames, suites, components, and signing keys. Both traditional `.list` and DEB822 `.sources` files are supported. x86 uses the TUNA Ubuntu archive; supported ports architectures use ubuntu-ports. Company/custom Ubuntu base mirrors are also replaced. Base archives are identified by official URLs, the Ubuntu archive key, or base components (restricted/universe/multiverse); third-party-only repositories are preserved. Ambiguous third-party repositories that reuse these identifiers require review with dry-run. The host apt files are system configuration, not xdotter symlinks.
+源是 /etc/apt 系统文件，不是用户符号链接。改动前在旁边保存 .dotfiles-original；重复换源不覆盖首次备份，手动改动后恢复会拒绝覆盖。独立换源后自行 apt-get update，安装流程统一刷新。
 
-Following [TUNA's guidance](https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/), the official `security.ubuntu.com` endpoint is retained. This switch does not accelerate VS Code, WezTerm, or other third-party repositories.
+apt 有 8 次重试和 30 秒超时。清华下失败后尝试恢复原备份、重新刷新索引并安装一次；原源也失败则非零。第三方仓库故障不会因切换 Ubuntu 源而消失。
 
-Before each first change, the original source file is preserved next to it with a `.dotfiles-original` suffix. Repeated switching retains that backup. Restore checks the current file against the expected transformed backup and refuses to overwrite subsequent manual edits. Backups remain available after restoration. No `trusted=yes`, signature bypass, or signing-key change is introduced. `--dry-run` does not create backups or invoke sudo. Standalone switching/restoration does not refresh apt indexes; install/update refresh indexes in the normal batch package stage, or run `sudo apt-get update` yourself after a standalone switch.
+## Release 和 Git
 
-This adapts apt source formats across Ubuntu 20+; it does not upgrade Ubuntu, revive end-of-life release repositories, or guarantee that every workstation package exists on older releases.
+GitHub 文件和插件优先 ghfast.top、mirror.ghproxy.com，之后官方。下载检查 SHA256 或 commit；文件使用临时落盘、10 秒连接超时、默认 180 秒传输超时（固定 Release 归档为 900 秒）、1 次重试及相同秒数重试预算、30 秒低速检测（1 KiB/s）。curl 最后一次重试可能超过预算结束时间。
 
-## Runtime and npm fallback
+VS Code 可先从官方 CDN 预取，WezTerm 可先从 Release 预取；两者均以已验证签名的 apt 索引中的 SHA256 校验后才交给 apt 安装。大于等于 8 MiB 的包尝试四段并行 Range 请求，要求 HTTP 206、长度正确与合并校验通过；失败后尝试下一源，再回退顺序下载，预取失败最终交给 apt。分段请求每次最多 900 秒，顺序包下载每次最多 1800 秒，另有重试，不保证总时间等于单次超时。
 
-In China mode npm/Node/Rust get a 600-second primary attempt, then a 900-second official attempt after failure (including timeout). Each timeout allows 10 seconds for termination before killing remaining children. Both failures remain non-zero. npm has one fetch retry and a 30-second request timeout. Locked versions, the independent npm prefix, rustup-init checksum, and Codex/Claude latest semantics are retained. Mirror retries apply to the same command; local errors can also trigger the official retry and will still fail if unresolved. An official retry changes only that command environment, not the persistent registry selected by nrm.
+固定 Release 缓存在 `~/.cache/dotfiles/downloads`，重新使用前校验。旧版 data/bin 中的归档只有通过当前锁校验才迁入缓存。卸载不删除下载缓存；mise 配置保留后续下载的运行时归档，已有安装不保证具备离线重装所需缓存。
 
-npm preflight is limited to selected npm tools. A failed probe warns and lets actual installation handle fallback. Minimal installation has no npm connectivity dependency. Auto mode uses a fixed GitHub reachability probe, not throughput measurement; dry-run skips that probe and previews China mode. Python/Go runtime downloads still rely on mise behavior, with no project-level alternate runtime URL.
+## npm 与运行时
 
-The environment controls follow [npm configuration](https://docs.npmjs.com/cli/v11/using-npm/config/), [mise Node mirrors](https://mise.jdx.dev/lang/node.html), and [rustup environment variables](https://rust-lang.github.io/rustup/environment-variables.html).
+中国模式 npm/Node/Rust 首次尝试最多 600 秒，失败后官方最多 900 秒，超时允许 10 秒退出后杀掉残余进程。npm 请求超时 30 秒、fetch 重试 1 次。两个源均失败仍非零；固定版本、独立 npm prefix、rustup-init 校验和 AI latest 规则不变。官方回退只改变本次命令环境，不永久修改 nrm 选择。
 
-Supported local overrides in `network.env` are:
+只有选择 npm 工具时才预检 npm；探测失败只警告，由实际安装回退。minimal 不依赖 npm 联网。Python/Go 运行时仍依赖 mise 自身行为；PyPI/GOPROXY 配置主要加速包/模块，不代表运行时有独立 URL 回退。
+
+## 本机覆盖
 
 ```dotenv
 DOTFILES_NETWORK_MODE=china
@@ -43,7 +43,9 @@ DOTFILES_PROXY_URL=http://127.0.0.1:7897
 DOTFILES_GITHUB_MIRRORS="https://ghfast.top https://mirror.ghproxy.com"
 DOTFILES_GOPROXY=https://goproxy.cn,direct
 DOTFILES_PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-# Optional, only when your network provides an approved compatible apt mirror:
+# 第三方仓库可设置经过确认的兼容镜像，不包含凭据：
 # DOTFILES_VSCODE_APT_REPO=https://packages.microsoft.com/repos/code
 # DOTFILES_WEZTERM_APT_REPO=https://apt.fury.io/wez/
 ```
+
+字段按白名单解析，不执行 Shell。完整参数来源见英文版所列 npm/mise/rustup 官方文档。

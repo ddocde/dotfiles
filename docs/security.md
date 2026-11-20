@@ -1,7 +1,11 @@
-# Security
+# 安全边界
 
-The project does not manage SSH keys, GPG keys, API keys, authentication sessions, Git identity, or npm tokens. Fixed executable downloads require a 64-character SHA256. xdotter refuses non-interactive conflicts. No install path uses `curl | sh`, sudo npm, apt autoremove, or forced deployment.
+[English](security.en.md)
 
-Review third-party repository modules before running them. State and logs must contain versions and failure context, never credentials or authorization headers.
+项目不管理 SSH/GPG 密钥、API key、登录状态、Git 身份或 npm token。固定下载需 SHA256，插件按提交核对。不会使用 curl 管道执行脚本、sudo npm、apt autoremove 或强制配置覆盖。
 
-Use `./setup.sh status PROFILE` to review configuration changes before deployment. Commands that write configuration, packages, or run state acquire `~/.local/state/dotfiles/run.lock`; a second concurrent run fails instead of racing package installation, downloads, or atomic state updates.
+apt 默认清华源仍保留签名验证；原文件旁保留 .dotfiles-original 备份，可通过 apt-mirror restore 恢复。手动改动后拒绝自动覆盖。
+
+写操作使用 run.flock 内核锁。锁文件保持原 inode，禁止删除“解锁”。并发操作会失败，进程退出自动释放。插件有本地修改时不更新或删除。
+
+日志仅应包含工具版本、阶段和退出码；不提交凭据、整份 dconf、历史记录或公司地址。

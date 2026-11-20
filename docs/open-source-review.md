@@ -1,28 +1,9 @@
-# Open-source dotfiles comparison review
+# 开源项目对照审查
 
-This project periodically reviews mature dotfiles managers without adopting their frameworks or copying implementation code.
+[English](open-source-review.en.md)
 
-## Projects reviewed
+参考 [chezmoi](https://github.com/twpayne/chezmoi) 的预览再应用与状态保护、[Dotbot](https://github.com/anishathalye/dotbot) 的幂等任务和 dry-run、[yadm](https://github.com/yadm-dev/yadm) 的冲突保留与本地状态。
 
-- [chezmoi](https://github.com/twpayne/chezmoi) separates source state from machine-local configuration, provides a review-before-apply workflow, and protects persistent state from concurrent operations.
-- [Dotbot](https://github.com/anishathalye/dotbot) emphasizes a self-contained bootstrap, ordered tasks, dry-run support, and idempotent repeated installation.
-- [yadm](https://github.com/yadm-dev/yadm) preserves conflicting local files, follows XDG paths, exposes status/introspection, and supports failure-short-circuiting hooks.
+采纳：只读 status、缓存复用、内核锁、默认拒绝覆盖、optional 失败继续独立任务并最终非零、CI 静态检查。参考用户旧项目的插件更新体验，另提供显式 repos update 和每周用户定时器。
 
-## Adopted ideas
-
-- A read-only `setup.sh status PROFILE` command previews every xdotter deployment plan before applying it.
-- Repeated installation remains idempotent; locked runtimes, npm tools, release archives, and correct symlinks are reused.
-- Mutating commands use an atomic per-user state lock so package operations, downloads, deployment, and state updates cannot race each other.
-- Existing files remain untouched on conflict. There is no implicit force or backup policy.
-- Optional module failures continue independent work, block downstream dependents, persist across later phases, and produce a final non-zero result.
-- Static CI runs syntax checks, ShellCheck, and the project test suite.
-
-## Deliberately not adopted
-
-- No template engine or platform-specific configuration branches: platform differences stay in installation logic and local files.
-- No encrypted secret store: credentials remain outside the repository and are owned by dedicated secret managers.
-- No general pre/post hook system: lifecycle behavior stays visible inside module contracts.
-- No automatic cleanup of unrelated or broken links, and no forced replacement of user files.
-- No migration to chezmoi, yadm, Dotbot, Stow, Nix, or Ansible; xdotter remains the sole configuration deployer.
-
-The review influenced architecture only. No source code or configuration payload was copied from these projects.
+没有迁移到这些框架；没有引入模板引擎、加密秘密存储、通用 hook 系统、无条件链接清理或强制替换。配置部署仍由 xdotter 执行。

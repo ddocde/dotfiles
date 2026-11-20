@@ -2,9 +2,9 @@
 
 > A Shell-first personal Linux environment manager that is repeatable, auditable, and safe by default.
 
-[简体中文](README.md) · [Architecture](docs/architecture.md) · [Installation](docs/installation.md) · [Contributing](CONTRIBUTING.md)
+[简体中文](README.md) · [Architecture](docs/architecture.en.md) · [Installation](docs/installation.en.md) · [Contributing](CONTRIBUTING.en.md)
 
-`dotfiles` uses profiles to describe a machine, independent modules to own tools, and [xdotter](docs/xdotter.md) exclusively for symlink deployment. Tool installation and configuration deployment remain separate, so each can be planned, run, and diagnosed independently.
+`dotfiles` uses profiles to describe a machine, independent modules to own tools, and [xdotter](docs/xdotter.en.md) exclusively for symlink deployment. Tool installation and configuration deployment remain separate, so each can be planned, run, and diagnosed independently.
 
 ## Why
 
@@ -32,7 +32,9 @@ Configuration deployment: module xdotter.toml
 Private local configuration: local files under ~/.config
 ```
 
-Read [architecture](docs/architecture.md), [modules](docs/modules.md), and the [deployment model](docs/xdotter.md) for details.
+Read [architecture](docs/architecture.en.md), [modules](docs/modules.en.md), and the [deployment model](docs/xdotter.en.md) for details.
+
+See the [English documentation index](docs/README.en.md), [support matrix](docs/support-matrix.en.md), and [personal migration](docs/configuration-migration.en.md). AI maintenance starts at [AGENTS.md](AGENTS.md) and the [repository skill](.agents/skills/dotfiles-maintainer/SKILL.md), which includes an English workflow.
 
 ## Profiles
 
@@ -114,11 +116,27 @@ Use dry-run to inspect a full installation safely:
 ./setup.sh module doctor zsh --yes
 ```
 
+Managed plugins support upstream and optional weekly updates:
+
+```bash
+./setup.sh repos status
+./setup.sh repos plan
+./setup.sh repos update --yes
+./setup.sh repos rollback --repo fzf-tab --yes
+./setup.sh repos schedule-on --yes
+./setup.sh repos schedule-off --yes
+```
+
+Only manifest-owned clones are managed. Initial synchronization uses pins; upstream updates record local overrides and retain one offline rollback point. Additional repositories declare public URLs, dedicated paths, pin/branch policies and manual/auto scheduling. Modified clones are protected. User systemd timers support daily/weekly/monthly execution; shell startup stays offline. See [repository updates](docs/repository-updates.en.md).
+
+GNOME users may preview `./setup.sh desktop plan`, then explicitly run `desktop apply --yes` or `desktop restore --yes`. Per-key backups exclude display layouts, drivers, accounts and hardware data. Automated desktop checks use mocks, not live graphical session acceptance.
+
 | Option | Meaning |
 | --- | --- |
 | `--dry-run` | Print work without side effects |
 | `--yes` | Run non-interactively; fail on configuration conflicts |
 | `--network auto\|china\|official` | Select network and mirror policy |
+| `--apt-mirror tuna\|keep` | TUNA by default on Ubuntu; keep retains current sources |
 | `--enable MODULE` | Append a module to the selected profile |
 | `--disable MODULE` | Remove a module from the selected profile |
 | `--purge-packages` | Consider removing selected apt packages during uninstall only |
@@ -138,7 +156,7 @@ The default mode is `china`, selected in this order:
 - `official`: official npm, Rust, and Node sources only.
 - `auto`: probes GitHub with a short timeout; uses official sources when stable and Chinese mirrors otherwise.
 
-The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, add retries and timeouts to apt, and switch Ubuntu base archives to TUNA by default. GitHub Releases and pinned Git repositories try verified mirror fallbacks in China mode, then use the official URL with checksum or commit verification. npm, Node, and Rust retry official sources after mirror failure in China mode. Official mode never adds mirror fallback. npm preflight runs only for selected npm tools and warns rather than blocks. Read [network and mirrors](docs/network-and-mirrors.md) for details.
+The scripts inherit upper- and lower-case `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`, add retries and timeouts to apt, and switch Ubuntu base archives to TUNA by default. GitHub Releases and pinned Git repositories try verified mirror fallbacks in China mode, then use the official URL with checksum or commit verification. npm, Node, and Rust retry official sources after mirror failure in China mode. Official mode never adds mirror fallback. npm preflight runs only for selected npm tools and warns rather than blocks. Read [network and mirrors](docs/network-and-mirrors.en.md) for details.
 
 Bash and Zsh share `proxy_on` / `proxy_off` helpers. The default proxy is `http://127.0.0.1:7897`:
 
@@ -162,12 +180,13 @@ Create these files yourself when needed. The project reads them but never deploy
 ~/.config/dotfiles/network.env     # machine-local network, proxy, and mirror overrides
 ```
 
-`local.sh` is loaded only when ownership and permissions are safe. Keep SSH/GPG keys, API tokens, npm tokens, and GitHub tokens outside the repository. See [local configuration](docs/local-config.md), [customization](docs/customization.md), and [security](docs/security.md).
+`local.sh` is loaded only when ownership and permissions are safe. Keep SSH/GPG keys, API tokens, npm tokens, and GitHub tokens outside the repository. See [local configuration](docs/local-config.en.md), [customization](docs/customization.en.md), and [security](docs/security.en.md).
 
 ## Conflicts, uninstall, and state
 
 - xdotter refuses to overwrite an existing target. Review and move it yourself, then deploy again.
 - `uninstall` removes links and files created by the module only. apt packages are retained by default, and this project never runs `apt autoremove` automatically.
+- Adopted Node/Go/Python runtimes are retained; only versions installed by this project are removed. Rust toolchains and download caches remain.
 - State, failure records, and installed versions are diagnostic history. `doctor` always checks the real system.
 - Mutating commands use a per-user run lock and reject concurrent operations against the same state directory.
 
@@ -178,8 +197,8 @@ For diagnosis, start with:
 ./setup.sh doctor workstation --yes --verbose
 ```
 
-See [troubleshooting](docs/troubleshooting.md) for recovery steps.
-See the [open-source comparison review](docs/open-source-review.md) for the project's explicit adoption decisions.
+See [troubleshooting](docs/troubleshooting.en.md) for recovery steps.
+See the [open-source comparison review](docs/open-source-review.en.md) for the project's explicit adoption decisions.
 
 ## Development and verification
 
@@ -188,8 +207,8 @@ See the [open-source comparison review](docs/open-source-review.md) for the proj
 ./scripts/docker-build-test.sh
 ```
 
-Real installation verification belongs only in the documented Docker environment; do not run a full installation directly on a development host. Follow the [manual Docker verification guide](docs/manual-verification.md) for the complete hands-on procedure, and see [testing](docs/testing.md) and [CONTRIBUTING](CONTRIBUTING.md) for project policy.
+Real installation verification belongs only in the documented Docker environment; do not run a full installation directly on a development host. Follow the [manual Docker verification guide](docs/manual-verification.en.md) for the complete hands-on procedure, and see [testing](docs/testing.en.md) and [CONTRIBUTING](CONTRIBUTING.en.md) for project policy.
 
 ## License and attribution
 
-MIT licensed. Read [LICENSE](LICENSE), [NOTICE](NOTICE), and [attribution](docs/attribution.md) for third-party sources and notices.
+MIT licensed. Read [LICENSE](LICENSE), [NOTICE](NOTICE), and [attribution](docs/attribution.en.md) for third-party sources and notices.

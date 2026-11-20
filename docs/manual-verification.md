@@ -1,5 +1,7 @@
 # 手动 Docker 验证指南
 
+[English](manual-verification.en.md)
+
 这份指南用于在一个可保留、可重复进入的 Docker 容器中，手动验证 `workstation` 的完整安装、幂等性、配置链接和 doctor。
 
 ## 安全边界
@@ -72,6 +74,7 @@ docker run --name dotfiles-manual-test -it \
   --network host \
   --env HTTP_PROXY --env HTTPS_PROXY --env ALL_PROXY \
   --env http_proxy --env https_proxy --env all_proxy \
+  --mount "type=bind,source=$PWD,target=/opt/dotfiles,readonly" \
   dotfiles-test:local bash
 ```
 
@@ -273,6 +276,21 @@ docker rm dotfiles-manual-test
 如果容器仍在运行，先回到容器执行 `exit`，不要对不明确的容器或镜像执行批量删除。
 
 ## 通过标准
+
+完整卸载重装使用维护脚本（宿主机仓库根目录执行）：
+
+```bash
+docker run --name dotfiles-lifecycle-test --network host \
+  --env DOTFILES_DOCKER_TEST=1 \
+  --env HTTP_PROXY --env HTTPS_PROXY --env ALL_PROXY \
+  --env http_proxy --env https_proxy --env all_proxy \
+  --mount "type=bind,source=$PWD,target=/opt/dotfiles,readonly" \
+  dotfiles-test:local bash tests/workstation-docker.sh
+```
+
+脚本执行安装、重复安装、doctor、卸载、重装、doctor 与交互 Shell 检查。复用镜像内既有软件或缓存时，应在记录中注明，不能视为全新联网下载验证。接管的 Node/Go/Python、Rust 工具链、apt 包和下载缓存会保留。
+
+插件更新可先用 `./setup.sh repos plan` 预览，再 `repos update --yes`；用 `repos rollback --repo fzf-tab --yes` 验证离线回滚。有本地修改时两者都应拒绝。真实用户定时器和 GNOME 设置需要独立会话验证，不能用本指南的 Docker 结果代替。
 
 同时满足以下条件即可认为手动验证通过：
 

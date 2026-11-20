@@ -1,13 +1,7 @@
-# Local config
+# 本地配置
 
-`~/.config/shell/local.sh` is sourced only when owned by the current user and not writable by group or others. `~/.config/git/config.local` is included by public Git config. `~/.config/dotfiles/network.env` may contain local proxy, mirror, and network-mode choices. Never place tokens or credentials in tracked files or mirror URLs.
+[English](local-config.en.md)
 
-For example:
+~/.config/shell/local.sh 仅在当前用户拥有且不可被组/其他用户写入时加载。~/.config/git/config.local 用于用户名、邮箱、签名等。~/.config/dotfiles/network.env 用于私有代理与镜像覆盖。
 
-```dotenv
-DOTFILES_NETWORK_MODE=china
-DOTFILES_PROXY_URL=http://127.0.0.1:7897
-DOTFILES_GITHUB_MIRRORS="https://ghfast.top https://mirror.ghproxy.com"
-```
-
-The file is parsed using an allowlist of `DOTFILES_*` network settings; arbitrary shell code is never sourced.
+network.env 只解析允许的 DOTFILES_* 字段，不 source 任意 Shell 代码。可设置 DOTFILES_NETWORK_MODE=china 和 DOTFILES_PROXY_URL。完整键列表见[网络文档](network-and-mirrors.md)。不要把 Token、认证头、私有地址或密钥放入跟踪文件。

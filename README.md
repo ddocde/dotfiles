@@ -34,6 +34,8 @@ Profile
 
 更多设计说明见[架构](docs/architecture.md)、[模块](docs/modules.md)与[部署模型](docs/xdotter.md)。
 
+文档入口：[中文文档](docs/README.md) · [English documentation](docs/README.en.md)。当前平台范围见[支持表](docs/support-matrix.md)，本机习惯迁移情况见[迁移清单](docs/configuration-migration.md)。AI 维护入口：[AGENTS.md](AGENTS.md) 和 [dotfiles-maintainer skill](.agents/skills/dotfiles-maintainer/SKILL.md)，包含英文工作流。
+
 ## Profile
 
 Profile 是按顺序读取的纯文本清单，位于 `profiles/*.list`。支持注释、`@include` 和可选模块：
@@ -115,6 +117,21 @@ Ubuntu 20.04 及之后版本安装/更新时默认启用清华 apt 镜像（自�
 ./setup.sh module doctor zsh --yes
 ```
 
+插件仓库也可以更新，并可开启每周后台更新：
+
+```bash
+./setup.sh repos status
+./setup.sh repos plan
+./setup.sh repos update --yes
+./setup.sh repos rollback --repo fzf-tab --yes
+./setup.sh repos schedule-on --yes
+./setup.sh repos schedule-off --yes
+```
+
+只管理清单内的克隆；默认锁定安装提交，跟随上游后记录本机覆盖，并保留一个离线回滚点。额外 Git 仓库可声明公开 URL、独立目录、锁定/分支策略和 manual/auto 更新选择。有本地修改会拒绝更新。Shell 启动不联网，定时器由用户 systemd 执行，支持每日/每周/每月。详见[仓库更新](docs/repository-updates.md)。
+
+GNOME 用户可用 `./setup.sh desktop plan` 预览有限桌面偏好，再显式执行 `desktop apply --yes` 或 `desktop restore --yes`。按键备份，不包含显示器、驱动、账号或硬件专用参数；自动化仅做 mock 测试，不冒充实机验证。
+
 | 选项 | 作用 |
 | --- | --- |
 | `--dry-run` | 只打印操作，不产生副作用 |
@@ -170,6 +187,7 @@ DOTFILES_PROXY_URL=socks5://127.0.0.1:1080 proxy_on
 
 - xdotter 发现目标文件已存在时默认拒绝覆盖；请先审阅并手动移动该文件，再重新部署。
 - `uninstall` 只撤销链接并清理模块自己创建的文件；apt 包默认保留，且项目绝不自动运行 `apt autoremove`。
+- 已有 Node/Go/Python 运行时会被接管并保留；本项目新装的版本才在卸载时移除。Rust 工具链和下载缓存保留。
 - 状态、失败记录和安装版本保存在 XDG 状态目录，供排错使用；`doctor` 始终以实际系统为准。
 - 会修改状态的命令使用每用户运行锁，拒绝同一个状态目录上的并发安装。
 
