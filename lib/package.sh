@@ -33,8 +33,27 @@ install_collected_packages() {
         -o Acquire::http::Timeout=30
         -o Acquire::https::Timeout=30
     )
-    run "${elevate[@]}" apt-get "${apt_options[@]}" update
-    run "${elevate[@]}" apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
+    local rc=0
+    if run "${elevate[@]}" apt-get "${apt_options[@]}" -o APT::Update::Error-Mode=any update; then
+        if [[ ${COLLECTED_PACKAGES[code]:-0} == 1 ]] && (( ! DRY_RUN )); then
+            prefetch_vscode_package || return $?
+        fi
+        if [[ ${COLLECTED_PACKAGES[wezterm]:-0} == 1 ]] && (( ! DRY_RUN )); then
+            prefetch_wezterm_package || return $?
+        fi
+        run "${elevate[@]}" apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}" && return 0
+        rc=$?
+    else
+        rc=$?
+    fi
+    if [[ ${APT_MIRROR:-keep} == tuna ]]; then
+        log_warn 'apt failed with TUNA; restoring original source backups and retrying once'
+        configure_apt_mirror restore || return "$rc"
+        run "${elevate[@]}" apt-get "${apt_options[@]}" -o APT::Update::Error-Mode=any update || return $?
+        run "${elevate[@]}" apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
+    else
+        return "$rc"
+    fi
 }
 
 purge_collected_packages() {

@@ -2,3 +2,6 @@
 node = "24.8.0"
 python = "3.13.7"
 go = "1.25.1"
+
+[settings]
+always_keep_download = true
