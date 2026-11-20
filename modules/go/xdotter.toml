@@ -1,0 +1,2 @@
+[links]
+"config/mise.toml" = "~/.config/mise/conf.d/dotfiles-go.toml"

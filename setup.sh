@@ -130,6 +130,11 @@ else
     apply_module_overrides
 fi
 resolve_dependencies
+if [[ $COMMAND == uninstall ]]; then
+    # Removing one module must not implicitly remove its shared prerequisites.
+    if (( MODULE_MODE )); then RESOLVED_MODULES=("$TARGET"); fi
+    guard_uninstall_dependencies
+fi
 
 show_plan() {
     local module marker

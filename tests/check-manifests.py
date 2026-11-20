@@ -5,14 +5,14 @@ import re
 import subprocess
 
 root = pathlib.Path(__file__).resolve().parents[1]
-go_version = re.search(r'^go = "([^"]+)"', (root / 'modules/mise/config/config.toml').read_text(), re.M)[1]
+go_version = re.search(r'^go = "([^"]+)"', (root / 'modules/go/config/mise.toml').read_text(), re.M)[1]
 go_config = (root / 'modules/go/mise/config.toml').read_text()
 go_lock = (root / 'modules/go/mise/mise.lock').read_text()
 assert f'go = "{go_version}"' in go_config
 assert f'version = "{go_version}"' in go_lock
 assert re.search(r'checksum = "sha256:[0-9a-f]{64}"', go_lock)
 assert f'https://dl.google.com/go/go{go_version}.linux-amd64.tar.gz' in go_lock
-python_version = re.search(r'^python = "([^"]+)"', (root / 'modules/mise/config/config.toml').read_text(), re.M)[1]
+python_version = re.search(r'^python = "([^"]+)"', (root / 'modules/python/config/mise.toml').read_text(), re.M)[1]
 python_config = (root / 'modules/python/mise/config.toml').read_text()
 python_lock = (root / 'modules/python/mise/mise.lock').read_text()
 assert f'python = "{python_version}"' in python_config
