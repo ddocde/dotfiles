@@ -8,7 +8,7 @@
 | Ubuntu 20.04+ apt source configuration | Automatic release detection, list and sources formats; no OS upgrade |
 | Complete tools on other Ubuntu releases | Not verified; package names and binary glibc requirements may differ |
 | ARM, macOS, Termux full install | Unsupported; profiles can be reviewed but real installation is rejected before system mutation |
-| GNOME preferences | Explicit separate command, live GNOME session required; automated checks are mocked |
+| GNOME preferences | Explicit command; mocks and isolated real dconf backend pass, graphical effects unverified |
 | Custom XDG config/data paths | Rejected early because xdotter 0.5.2 cannot expand target environment variables; isolate HOME instead |
 
 Drivers, monitor layout, fingerprints, disks, VPN, accounts, input-method dictionaries, SSH/GPG keys and history data are outside publicly distributed dotfiles. This repository does not clone an entire computer.

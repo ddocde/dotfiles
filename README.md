@@ -130,7 +130,7 @@ Ubuntu 20.04 及之后版本安装/更新时默认启用清华 apt 镜像（自�
 
 只管理清单内的克隆；默认锁定安装提交，跟随上游后记录本机覆盖，并保留一个离线回滚点。额外 Git 仓库可声明公开 URL、独立目录、锁定/分支策略和 manual/auto 更新选择。有本地修改会拒绝更新。Shell 启动不联网，定时器由用户 systemd 执行，支持每日/每周/每月。详见[仓库更新](docs/repository-updates.md)。
 
-GNOME 用户可用 `./setup.sh desktop plan` 预览有限桌面偏好，再显式执行 `desktop apply --yes` 或 `desktop restore --yes`。按键备份，不包含显示器、驱动、账号或硬件专用参数；自动化仅做 mock 测试，不冒充实机验证。
+GNOME 用户可用 `./setup.sh desktop plan` 预览有限桌面偏好，再显式执行 `desktop apply --yes` 或 `desktop restore --yes`。按键备份，不包含显示器、驱动、账号或硬件专用参数；通过 mock 和隔离 dconf 后端测试，实际图形会话尚未验收。
 
 | 选项 | 作用 |
 | --- | --- |

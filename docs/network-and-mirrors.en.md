@@ -56,4 +56,8 @@ VS Code may be prefetched from its official CDN, and WezTerm from its Release as
 
 Fixed Release archives without a size field allow 900 seconds per transfer instead of the 180-second bootstrap default. A size field also enables segmented downloading for archives such as the font package; they still require the repository-locked SHA256.
 
+AI CLI `latest` packages use a separate budget: 180 seconds for the mirror, then 1800 seconds for npmjs; official mode starts with 1800 seconds. Native packages can exceed 100 MiB. Each npm attempt immediately checks the CLI with `--version`, because npm may return zero after an optional native download fails. A broken CLI triggers official fallback rather than being recorded as successful. Both sources failing still returns failure.
+
+Official attempts resolve the current native dependency and SHA512 integrity, prefetch it in ranges, verify it and import it into npm's cache before npm install latest. Transfers use four ranges below 100 MiB and sixteen at or above 100 MiB. Unsupported Range requests or failed prefetch fall back to npm's normal transfer. npm integrity checks and executable validation still apply. Cancellation ends the old attempt before retry; only npm AI-package rename staging directories inside the project's own prefix are cleaned, preventing ENOTEMPTY without clearing user global packages or .npmrc.
+
 Fixed Release archives live in `~/.cache/dotfiles/downloads` and are checked before reuse. Legacy data/bin archives migrate only after matching current locks. Uninstall retains downloads. Mise retains future runtime download archives; adopted installs may lack the archives needed for offline reinstall.

@@ -16,6 +16,6 @@ The actual local files and symlink destinations were inspected read-only. Host s
 | Company tools, proxy details, identities and workspace paths | Excluded; use shell/local.sh or git/config.local |
 | Powerlevel10k, large frameworks and automatic ROS sourcing | Not enabled by default; local customization remains available |
 
-Use `./setup.sh desktop plan`, then `desktop apply --yes` or `desktop restore --yes` in a live GNOME session. Initial values are backed up per key in the state directory; repeated apply preserves the first backup. Restore replaces those allowlisted values with the original values. No full dconf dump, display layout, credentials or hardware configuration is tracked. Desktop round-trip tests use mocks, not host mutations.
+Use `./setup.sh desktop plan`, then `desktop apply --yes` or `desktop restore --yes` in a live GNOME session. Initial values are backed up per key; repeated apply preserves the first backup. Restore replaces allowlisted values with the originals. No full dconf dump, display layout, credentials or hardware configuration is tracked. Mock tests and the isolated D-Bus/dconf backend round-trip in tests/desktop-docker.sh pass without host mutations; actual graphical effects remain unverified.
 
 Create ~/.config/git/config.local yourself with user.name and user.email. The clone must remain at its deployment path; pulling a different clone does not switch existing symlinks automatically.

@@ -129,7 +129,7 @@ Managed plugins support upstream and optional weekly updates:
 
 Only manifest-owned clones are managed. Initial synchronization uses pins; upstream updates record local overrides and retain one offline rollback point. Additional repositories declare public URLs, dedicated paths, pin/branch policies and manual/auto scheduling. Modified clones are protected. User systemd timers support daily/weekly/monthly execution; shell startup stays offline. See [repository updates](docs/repository-updates.en.md).
 
-GNOME users may preview `./setup.sh desktop plan`, then explicitly run `desktop apply --yes` or `desktop restore --yes`. Per-key backups exclude display layouts, drivers, accounts and hardware data. Automated desktop checks use mocks, not live graphical session acceptance.
+GNOME users may preview `./setup.sh desktop plan`, then explicitly run `desktop apply --yes` or `desktop restore --yes`. Per-key backups exclude display layouts, drivers, accounts and hardware data. Mock and isolated dconf backend tests pass; graphical-session acceptance remains pending.
 
 | Option | Meaning |
 | --- | --- |

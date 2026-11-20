@@ -1,5 +1,7 @@
 [简体中文](troubleshooting.md)
 
+If npm reports success but an AI CLI lacks its native dependency, update this repository and reinstall that module. The installer now validates the executable and falls back to npmjs. After an interrupted install, ENOTEMPTY can indicate stale npm rename staging directories: first ensure no other setup/npm install is running. The current installer cleans only matching staging directories in its own prefix, without deleting ~/.npm or editing the user's .npmrc.
+
 # Troubleshooting
 
 - Conflict: inspect the target and move it manually if the repository version should replace it.

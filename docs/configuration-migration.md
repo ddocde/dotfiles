@@ -24,7 +24,7 @@ GNOME 示例：
 ./setup.sh desktop restore --yes
 ```
 
-apply 前逐键备份到状态目录，重复执行保留首次备份；restore 会恢复清单内各键原值。没有整份 dconf 导出，也不部署显示器/硬件/登录设置。实际 GNOME 会话未在宿主机写入验证，自动化 round-trip 使用 mock。
+apply 前逐键备份到状态目录，重复执行保留首次备份；restore 会恢复清单内各键原值。没有整份 dconf 导出，也不部署显示器/硬件/登录设置。mock 与 Docker 隔离 D-Bus/dconf 后端的 apply/重复/restore 已通过（tests/desktop-docker.sh）；没有修改宿主机桌面，也未验证真实图形效果。
 
 Git 私有身份示例（自行填入，不提交）：
 

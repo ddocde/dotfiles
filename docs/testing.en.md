@@ -2,6 +2,8 @@
 
 After full installation, run `bash tests/shell-startup-docker.sh` in the retained container. It records the first measured PTY readiness time and five subsequent samples, rather than a physical cold boot or GUI paint time. Curl/wget/Git network commands are blocked; strace checks Bash/Zsh startup for IPv4/IPv6 socket creation and connections.
 
+`bash tests/toolchains-docker.sh` compiles and runs C/C++/Rust/Go and executes Node/Python examples, beyond version checks. `bash tests/desktop-docker.sh` exercises an isolated real D-Bus/dconf backend: apply, repeat, restore. Neither proves graphical-session behavior; systemd scheduling remains mocked plus unit syntax validation.
+
 # Testing
 
 `./tests/run.sh` covers profile expansion, stable dependency ordering, network selection, dry-run side effects, release checksums, xdotter checksum, conflict refusal, and forbidden unsafe patterns.
