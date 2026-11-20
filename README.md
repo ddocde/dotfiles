@@ -66,6 +66,16 @@ cd dotfiles
 ./setup.sh install workstation --yes --network china
 ```
 
+Ubuntu 20.04 及之后版本可显式选择清华 apt 镜像（自动识别系统版本，保留 security 和自定义源）：
+
+```bash
+./setup.sh install workstation --yes --network china --apt-mirror tuna
+# 恢复换源前的配置
+./setup.sh apt-mirror restore --yes
+```
+
+换源前会保留原文件备份；未指定 `--apt-mirror` 时沿用机器当前源。只适配 apt 源不代表完整工具集已在所有 Ubuntu 20+ 版本通过验证，完整安装的主要验证平台仍为 Ubuntu 24.04 x86_64。
+
 首次运行需要 Bash、Git、curl、CA 证书；在非 root 的 Linux 上，安装系统包还需要 `sudo`。`install` 会依次完成网络预检、系统依赖安装、模块安装、配置部署和 `doctor`。
 
 仅想验证将要发生的事情时使用：

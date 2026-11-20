@@ -66,6 +66,15 @@ cd dotfiles
 ./setup.sh install workstation --yes --network china
 ```
 
+On Ubuntu 20.04 or newer, explicitly select the TUNA apt mirror with automatic release detection:
+
+```bash
+./setup.sh install workstation --yes --network china --apt-mirror tuna
+./setup.sh apt-mirror restore --yes
+```
+
+Original source files are backed up. Security and custom repositories stay unchanged; apt sources stay unchanged by default. Mirror compatibility does not imply that the complete tool set is verified on every Ubuntu release; Ubuntu 24.04 x86_64 remains the primary installation test platform.
+
 The first run requires Bash, Git, curl, CA certificates, and `sudo` for system packages when not root. `install` performs network preflight, system dependency installation, module installation, configuration deployment, and `doctor` in that order.
 
 Use dry-run to inspect a full installation safely:

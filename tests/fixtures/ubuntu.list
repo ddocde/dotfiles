@@ -1,0 +1,5 @@
+deb http://archive.ubuntu.com/ubuntu focal main restricted universe multiverse
+deb http://cn.archive.ubuntu.com/ubuntu focal-updates main universe
+deb http://security.ubuntu.com/ubuntu focal-security main universe
+deb https://packages.microsoft.com/repos/code stable main
+deb https://example.com/ubuntu focal main

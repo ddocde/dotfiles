@@ -37,6 +37,22 @@ fi
 output=$("$ROOT/setup.sh" plan minimal --network official)
 assert_contains "$output" 'core             required' 'minimal profile expands'
 assert_contains "$output" 'Network: official' 'CLI network mode wins'
+
+apt_rendered=$(APT_MIRROR_URL=https://mirrors.tuna.tsinghua.edu.cn/ubuntu bash -c '
+    source "$1/lib/apt-mirror.sh"
+    render_tuna_sources "$1/tests/fixtures/ubuntu.list"
+    render_tuna_sources "$1/tests/fixtures/ubuntu.sources"
+' _ "$ROOT")
+if [[ $apt_rendered == *'https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main'* &&
+      $apt_rendered == *'http://security.ubuntu.com/ubuntu focal-security'* &&
+      $apt_rendered == *'https://packages.microsoft.com/repos/code stable main'* &&
+      $apt_rendered == *'https://example.com/ubuntu focal main'* &&
+      $apt_rendered == *'Suites: noble noble-updates noble-backports'* &&
+      $apt_rendered == *'Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg'* ]]; then
+    ok 'apt mirror preserves release suites, security, signing keys and custom repositories'
+else
+    not_ok 'apt mirror preserves release suites, security, signing keys and custom repositories'
+fi
 if [[ -f $ROOT/modules/network/README.md ]]; then ok 'virtual network module is repository-visible'; else not_ok 'virtual network module is repository-visible'; fi
 
 mirror=$(DOTFILES_CONFIG_DIR=/nonexistent NETWORK_MODE=china bash -c 'source "$1/lib/logging.sh"; source "$1/lib/network.sh"; load_network_mode; printf "%s" "$MISE_NODE_MIRROR_URL"' _ "$ROOT")

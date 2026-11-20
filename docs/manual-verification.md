@@ -41,10 +41,10 @@ env | grep -iE '^(http|https|all|no)_proxy=' || true
 构建过程会在镜像内执行：
 
 - Shell 语法检查；
-- 22 项单元和 Mock 测试；
+- 全部单元和 Mock 测试；
 - ShellCheck。
 
-期望结果为 `22 passed, 0 failed`，镜像名为 `dotfiles-test:local`。
+期望结果为所有测试通过、`0 failed`，镜像名为 `dotfiles-test:local`。
 
 ```bash
 docker image inspect dotfiles-test:local --format '{{.RepoTags}} {{.Id}}'
@@ -128,6 +128,29 @@ docker exec dotfiles-manual-test sh -c \
 - 真正失败会有非零退出码和 `failure` 记录。
 
 安装结束时，required 模块应全部为 `success`，并自动完成配置部署与 doctor。
+
+### 可选：验证清华 apt 镜像
+
+Ubuntu 20.04 及之后版本可在安装时加 `--apt-mirror tuna`，脚本读取系统版本并保留现有仓库代号。也可以单独执行：
+
+```bash
+./setup.sh apt-mirror tuna --yes --dry-run
+./setup.sh apt-mirror tuna --yes
+# 重复执行应保持相同结果，不覆盖首次备份
+./setup.sh apt-mirror tuna --yes
+# 恢复原来的源；原文件旁的 .dotfiles-original 备份仍会保留
+./setup.sh apt-mirror restore --yes
+```
+
+此选项只替换官方 archive/ports 地址，保留 security 和公司等自定义源。因此本测试镜像自带的内部源可能不会发生变化；这属于预期行为。恢复时如果检测到换源后的手动修改，会拒绝覆盖并提示检查相关文件。单独换源后可执行 `sudo apt-get update`；完整 install/update 流程会统一刷新索引。
+
+项目另提供仅在可丢弃 Docker 容器内执行的夹具测试，覆盖两种源格式、重复执行、恢复和手动修改保护。在宿主机运行：
+
+```bash
+docker run --name dotfiles-apt-mirror-test --user root \
+  --env DOTFILES_DOCKER_TEST=1 dotfiles-test:local \
+  bash tests/apt-mirror-docker.sh
+```
 
 ## 7. 第二次安装：验证幂等性
 
@@ -253,7 +276,7 @@ docker rm dotfiles-manual-test
 
 同时满足以下条件即可认为手动验证通过：
 
-- Docker 构建中 22 项测试和 ShellCheck 通过；
+- Docker 构建中全部测试和 ShellCheck 通过；
 - `workstation` 首次安装返回 0；
 - 第二次安装返回 0，且已有配置均为 `already correct`；
 - 独立 doctor 返回 0；
